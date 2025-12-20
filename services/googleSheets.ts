@@ -5,26 +5,49 @@ const SHEET_ID = '1idfCJE2jQLzZzIyU8C0JN0Na0PxfoKq-mAP6_7Pz-L4';
 const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=0`;
 
 /**
- * وظيفة لتحليل صف CSV مع مراعاة النصوص الموجودة داخل علامات الاقتباس
+ * محرك معالجة CSV احترافي يتعامل مع النصوص المقتبسة والأسطر المتعددة داخل الخلية الواحدة
  */
-const parseCSVRow = (row: string): string[] => {
-  const result = [];
-  let current = '';
+const parseCSV = (text: string): string[][] => {
+  const rows: string[][] = [];
+  let currentRow: string[] = [];
+  let currentField = '';
   let inQuotes = false;
-  
-  for (let i = 0; i < row.length; i++) {
-    const char = row[i];
-    if (char === '"') {
+
+  // إزالة رموز BOM المخفية التي قد توجد في ملفات جوجل
+  const cleanText = text.replace(/^\uFEFF/, '');
+
+  for (let i = 0; i < cleanText.length; i++) {
+    const char = cleanText[i];
+    const nextChar = cleanText[i + 1];
+
+    if (char === '"' && inQuotes && nextChar === '"') {
+      currentField += '"';
+      i++; // تخطي الاقتباس المزدوج
+    } else if (char === '"') {
       inQuotes = !inQuotes;
     } else if (char === ',' && !inQuotes) {
-      result.push(current.trim());
-      current = '';
+      currentRow.push(currentField.trim());
+      currentField = '';
+    } else if ((char === '\r' || char === '\n') && !inQuotes) {
+      if (currentRow.length > 0 || currentField !== '') {
+        currentRow.push(currentField.trim());
+        rows.push(currentRow);
+      }
+      currentField = '';
+      currentRow = [];
+      if (char === '\r' && nextChar === '\n') i++; // تخطي \n في حال كان \r\n
     } else {
-      current += char;
+      currentField += char;
     }
   }
-  result.push(current.trim());
-  return result;
+
+  // إضافة السطر الأخير إذا لم ينتهِ بفاصل سطر
+  if (currentRow.length > 0 || currentField !== '') {
+    currentRow.push(currentField.trim());
+    rows.push(currentRow);
+  }
+
+  return rows;
 };
 
 export const fetchSheetData = async (): Promise<Student[]> => {
@@ -35,19 +58,23 @@ export const fetchSheetData = async (): Promise<Student[]> => {
       throw new Error(`فشل الاتصال بجدول البيانات: ${response.statusText}`);
     }
 
-    const contentType = response.headers.get('content-type');
-    if (contentType && !contentType.includes('text/csv') && !contentType.includes('application/octet-stream')) {
-      throw new Error('الملف المستلم ليس بتنسيق CSV. تأكد أن الجدول "عام" (Anyone with the link can view).');
-    }
-
     const csvText = await response.text();
-    const lines = csvText.split(/\r?\n/).filter(line => line.trim().length > 0);
+    const allRows = parseCSV(csvText);
+
+    if (allRows.length === 0) return [];
+
+    // فحص السطر الأول: إذا كان يحتوي على "اسم الدارس" أو "م" فهو سطر عناوين ويجب تخطيه
+    const firstRowStr = JSON.stringify(allRows[0]);
+    const hasHeader = firstRowStr.includes('اسم') || firstRowStr.includes('الدارس') || firstRowStr.includes('"م"');
     
-    // تخطي السطر الأول (العناوين)
-    const dataRows = lines.slice(1);
-    
-    return dataRows.map((line) => {
-      const row = parseCSVRow(line);
+    const dataRows = hasHeader ? allRows.slice(1) : allRows;
+
+    // تصفية الأسطر التي قد تكون فارغة تماماً (نتيجة مساحات زائدة في جوجل شيت)
+    const validRows = dataRows.filter(row => row.some(cell => cell.length > 0));
+
+    console.log(`تم تحميل ${validRows.length} سجل طالب بنجاح.`);
+
+    return validRows.map((row) => {
       return {
         id: row[0] || '',
         name: row[1] || '',
@@ -73,6 +100,6 @@ export const fetchSheetData = async (): Promise<Student[]> => {
     });
   } catch (error) {
     console.error('Error fetching sheet data:', error);
-    throw error; // نمرر الخطأ ليتم التعامل معه في الواجهة
+    throw error;
   }
 };

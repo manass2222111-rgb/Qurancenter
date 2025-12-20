@@ -1,15 +1,17 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { fetchSheetData } from './services/googleSheets';
 import { Student, ViewType } from './types';
 import Dashboard from './components/Dashboard';
 import StudentTable from './components/StudentTable';
+import NotificationPanel from './components/NotificationPanel';
 
 const App: React.FC = () => {
   const [students, setStudents] = useState<Student[]>([]);
   const [activeView, setActiveView] = useState<ViewType>('dashboard');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
 
   const loadData = async () => {
     try {
@@ -27,6 +29,47 @@ const App: React.FC = () => {
   useEffect(() => {
     loadData();
   }, []);
+
+  // حساب التنبيهات
+  const notifications = useMemo(() => {
+    const now = new Date();
+    const thirtyDaysFromNow = new Date();
+    thirtyDaysFromNow.setDate(now.getDate() + 30);
+
+    const expiredIds: Student[] = [];
+    const expiringSoonIds: Student[] = [];
+    const unpaidFees: Student[] = [];
+
+    students.forEach(s => {
+      // 1. الرسوم
+      if (s.fees !== 'نعم') {
+        unpaidFees.push(s);
+      }
+
+      // 2. الهوية
+      if (s.expiryId) {
+        try {
+          // محاولة تحويل التاريخ (نفترض تنسيق YYYY-MM-DD أو مشابه)
+          const expiryDate = new Date(s.expiryId);
+          if (!isNaN(expiryDate.getTime())) {
+            if (expiryDate < now) {
+              expiredIds.push(s);
+            } else if (expiryDate <= thirtyDaysFromNow) {
+              expiringSoonIds.push(s);
+            }
+          }
+        } catch (e) {
+          console.error("Invalid date format for student:", s.name);
+        }
+      }
+    });
+
+    return { expiredIds, expiringSoonIds, unpaidFees };
+  }, [students]);
+
+  const totalNotifications = notifications.expiredIds.length + 
+                           notifications.expiringSoonIds.length + 
+                           notifications.unpaidFees.length;
 
   if (error) {
     return (
@@ -87,11 +130,30 @@ const App: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-4">
-               <button className="p-2 text-gray-400 hover:text-teal-600 transition-colors">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                  </svg>
-               </button>
+               {/* زر التنبيهات المطور */}
+               <div className="relative">
+                 <button 
+                  onClick={() => setIsNotificationOpen(!isNotificationOpen)}
+                  className={`p-2 rounded-xl transition-all relative ${isNotificationOpen ? 'bg-teal-50 text-teal-600' : 'text-gray-400 hover:text-teal-600 hover:bg-gray-50'}`}
+                 >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                    </svg>
+                    {totalNotifications > 0 && (
+                      <span className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full border-2 border-white flex items-center justify-center animate-bounce">
+                        {totalNotifications}
+                      </span>
+                    )}
+                 </button>
+
+                 {isNotificationOpen && (
+                   <NotificationPanel 
+                    notifications={notifications} 
+                    onClose={() => setIsNotificationOpen(false)} 
+                   />
+                 )}
+               </div>
+
                <div className="w-10 h-10 rounded-full bg-teal-100 border-2 border-teal-200 flex items-center justify-center text-teal-700 font-bold cursor-pointer">
                   أ
                </div>

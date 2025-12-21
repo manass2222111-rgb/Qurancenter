@@ -2,6 +2,7 @@
 import React, { useState, useMemo } from 'react';
 import { Student } from '../types';
 import { smartMatch } from '../utils/arabicSearch';
+import * as XLSX from 'https://esm.sh/xlsx';
 
 interface StudentTableProps {
   students: Student[];
@@ -55,11 +56,11 @@ const StudentTable: React.FC<StudentTableProps> = ({ students }) => {
     });
   }, [students, search, filters]);
 
-  // وظيفة تصدير البيانات إلى Excel (CSV)
-  const exportToCSV = () => {
+  // وظيفة تصدير البيانات إلى Excel الحقيقي (.xlsx)
+  const exportToExcel = () => {
     if (filtered.length === 0) return;
 
-    // عناوين الأعمدة بالعربية
+    // 1. تعريف عناوين الأعمدة
     const headers = [
       "م", "اسم الدارس", "الجنسية", "تاريخ الميلاد", "رقم الهاتف", 
       "العمر", "المؤهل", "العمل", "السكن", "تاريخ التسجيل", 
@@ -67,30 +68,30 @@ const StudentTable: React.FC<StudentTableProps> = ({ students }) => {
       "انتهاء الهوية", "المحفظ", "الرسوم", "الحلقة", "نسبة الاكتمال"
     ];
 
-    // تحويل البيانات لصفوف
-    const rows = filtered.map(s => [
+    // 2. تجهيز البيانات
+    const data = filtered.map(s => [
       s.id, s.name, s.nationality, s.dob, s.phone,
       s.age, s.qualification, s.job, s.address, s.regDate,
       s.level, s.part, s.nationalId, s.category, s.period,
       s.expiryId, s.teacher, s.fees, s.circle, s.completion
     ]);
 
-    // دمج العناوين مع الصفوف وتحويلها لنص CSV
-    // نستخدم الرموز المقتبسة للتعامل مع الفواصل داخل النصوص
-    const csvContent = [
-      headers.join(","),
-      ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(","))
-    ].join("\n");
+    // 3. إنشاء ورقة العمل (Worksheet)
+    const ws = XLSX.utils.aoa_to_sheet([headers, ...data]);
 
-    // إضافة BOM لدعم العربية في Excel
-    const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute("download", `سجل_الطلاب_${new Date().toLocaleDateString('ar-SA').replace(/\//g, '-')}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    // 4. ضبط اتجاه الورقة من اليمين لليسار (RTL)
+    if (!ws['!views']) ws['!views'] = [];
+    ws['!views'].push({ RTL: true });
+    
+    // ضبط عرض الأعمدة بشكل تقريبي لتناسب المحتوى العربي
+    ws['!cols'] = headers.map(() => ({ wch: 20 }));
+
+    // 5. إنشاء كتاب العمل (Workbook) وحفظ الملف
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "سجل الطلاب المصفى");
+
+    // توليد الملف وتحميله
+    XLSX.writeFile(wb, `سجل_نور_القرآن_${new Date().toLocaleDateString('ar-SA').replace(/\//g, '-')}.xlsx`);
   };
 
   const handlePrint = () => {
@@ -123,12 +124,12 @@ const StudentTable: React.FC<StudentTableProps> = ({ students }) => {
           </div>
           <div className="flex gap-3 w-full md:w-auto">
             <button 
-              onClick={exportToCSV}
+              onClick={exportToExcel}
               disabled={filtered.length === 0}
-              className="flex-1 md:flex-none px-6 py-4 bg-white border border-slate-200 text-slate-600 rounded-2xl font-bold text-sm hover:bg-slate-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              className="flex-1 md:flex-none px-6 py-4 bg-white border border-slate-200 text-emerald-600 rounded-2xl font-bold text-sm hover:bg-emerald-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
-              <svg className="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-              تصدير CSV
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+              تصدير Excel
             </button>
             <button 
               onClick={handlePrint}

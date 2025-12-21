@@ -37,6 +37,11 @@ const App: React.FC = () => {
 
   useEffect(() => { loadData(); }, []);
 
+  const handleAddStudent = (newStudent: Student) => {
+    setStudents(prev => [newStudent, ...prev]);
+    setActiveView('table');
+  };
+
   const notifications = useMemo(() => {
     const now = new Date();
     const thirtyDays = 30 * 24 * 60 * 60 * 1000;
@@ -160,7 +165,7 @@ const App: React.FC = () => {
               {activeView === 'dashboard' && <Dashboard students={students} />}
               {activeView === 'table' && <StudentTable students={students} />}
               {activeView === 'alerts' && <AlertsView notifications={notifications} />}
-              {activeView === 'add' && <AddStudentForm onCancel={() => setActiveView('table')} />}
+              {activeView === 'add' && <AddStudentForm onAdd={handleAddStudent} onCancel={() => setActiveView('table')} studentsCount={students.length} />}
             </div>
           )}
         </div>

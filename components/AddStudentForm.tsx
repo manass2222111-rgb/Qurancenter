@@ -6,9 +6,10 @@ interface AddStudentFormProps {
   onAdd: (student: Student) => void;
   onCancel: () => void;
   studentsCount: number;
+  isSaving?: boolean;
 }
 
-const AddStudentForm: React.FC<AddStudentFormProps> = ({ onAdd, onCancel, studentsCount }) => {
+const AddStudentForm: React.FC<AddStudentFormProps> = ({ onAdd, onCancel, studentsCount, isSaving = false }) => {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState<Partial<Student>>({
     regDate: new Date().toISOString().split('T')[0],
@@ -17,22 +18,19 @@ const AddStudentForm: React.FC<AddStudentFormProps> = ({ onAdd, onCancel, studen
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    if (isSaving) return;
     const { name, value } = e.target;
     setFormData(prev => {
       const updated = { ...prev, [name]: value };
-      
-      // حساب العمر تلقائياً إذا تغير تاريخ الميلاد
       if (name === 'dob' && value) {
         const birthDate = new Date(value);
         const age = new Date().getFullYear() - birthDate.getFullYear();
         updated.age = age.toString();
       }
-
       return updated;
     });
   };
 
-  // حساب نسبة اكتمال البيانات
   useEffect(() => {
     const totalFields = 19;
     const filledFields = Object.values(formData).filter(v => v && v !== '').length;
@@ -42,6 +40,8 @@ const AddStudentForm: React.FC<AddStudentFormProps> = ({ onAdd, onCancel, studen
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSaving) return;
+
     const newStudent: Student = {
       id: (studentsCount + 1).toString(),
       name: formData.name || '',
@@ -74,7 +74,7 @@ const AddStudentForm: React.FC<AddStudentFormProps> = ({ onAdd, onCancel, studen
   ];
 
   return (
-    <div className="max-w-4xl mx-auto bg-white rounded-[3rem] border border-slate-100 shadow-2xl overflow-hidden mb-10">
+    <div className={`max-w-4xl mx-auto bg-white rounded-[3rem] border border-slate-100 shadow-2xl overflow-hidden mb-10 transition-opacity ${isSaving ? 'opacity-70 pointer-events-none' : ''}`}>
       <div className="bg-[#0F172A] p-10 text-white flex justify-between items-center">
         <div>
           <h3 className="text-2xl font-black mb-1">تسجيل دارس جديد</h3>
@@ -95,7 +95,6 @@ const AddStudentForm: React.FC<AddStudentFormProps> = ({ onAdd, onCancel, studen
 
       <form onSubmit={handleSubmit} className="p-12 space-y-10">
         
-        {/* الخطوة 1: البيانات الشخصية */}
         {step === 1 && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-up">
             <div className="space-y-2">
@@ -135,7 +134,6 @@ const AddStudentForm: React.FC<AddStudentFormProps> = ({ onAdd, onCancel, studen
           </div>
         )}
 
-        {/* الخطوة 2: المسار التعليمي */}
         {step === 2 && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-up">
             <div className="space-y-2">
@@ -168,7 +166,6 @@ const AddStudentForm: React.FC<AddStudentFormProps> = ({ onAdd, onCancel, studen
           </div>
         )}
 
-        {/* الخطوة 3: البيانات الإدارية */}
         {step === 3 && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-up">
             <div className="space-y-2">
@@ -239,9 +236,11 @@ const AddStudentForm: React.FC<AddStudentFormProps> = ({ onAdd, onCancel, studen
             ) : (
               <button 
                 type="submit"
-                className="px-10 py-4 bg-emerald-600 text-white rounded-2xl font-black text-sm shadow-xl shadow-emerald-200 hover:bg-emerald-700 transition-all"
+                disabled={isSaving}
+                className={`px-10 py-4 rounded-2xl font-black text-sm shadow-xl transition-all flex items-center gap-3 ${isSaving ? 'bg-slate-400 text-white' : 'bg-emerald-600 text-white shadow-emerald-200 hover:bg-emerald-700'}`}
               >
-                إتمام التسجيل والحفظ
+                {isSaving && <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>}
+                {isSaving ? 'جاري الإرسال للسحابة...' : 'إتمام التسجيل والحفظ'}
               </button>
             )}
           </div>

@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { fetchSheetData } from './services/googleSheets';
+import { fetchSheetData, addStudentToSheet } from './services/googleSheets';
 import { Student, ViewType } from './types';
 import Dashboard from './components/Dashboard';
 import StudentTable from './components/StudentTable';
@@ -20,6 +20,7 @@ const App: React.FC = () => {
   const [students, setStudents] = useState<Student[]>([]);
   const [activeView, setActiveView] = useState<ViewType>('dashboard');
   const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -37,9 +38,25 @@ const App: React.FC = () => {
 
   useEffect(() => { loadData(); }, []);
 
-  const handleAddStudent = (newStudent: Student) => {
-    setStudents(prev => [newStudent, ...prev]);
-    setActiveView('table');
+  const handleAddStudent = async (newStudent: Student) => {
+    try {
+      setIsSaving(true);
+      // محاولة الحفظ في جوجل شيت أولاً
+      const success = await addStudentToSheet(newStudent);
+      
+      if (success) {
+        setStudents(prev => [newStudent, ...prev]);
+        setActiveView('table');
+        alert("تم حفظ بيانات الدارس بنجاح في النظام وفي ملف جوجل شيت!");
+      } else {
+        alert("حدث خطأ أثناء محاولة الحفظ في جوجل شيت. سيتم الحفظ مؤقتاً في المتصفح فقط.");
+        setStudents(prev => [newStudent, ...prev]);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const notifications = useMemo(() => {
@@ -61,6 +78,7 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#F1F5F9] flex overflow-hidden">
+      {/* Sidebar */}
       <aside className="hidden lg:flex w-72 bg-[#0F172A] flex-col relative z-20">
         <div className="p-8">
           <div className="flex items-center gap-3 mb-10">
@@ -106,12 +124,13 @@ const App: React.FC = () => {
               <p className="text-slate-400 text-xs font-medium mb-3">الحالة</p>
               <div className="flex items-center gap-2 text-white text-xs font-bold">
                 <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-                متصل
+                متصل ومزامن
               </div>
            </div>
         </div>
       </aside>
 
+      {/* Main Content */}
       <main className="flex-1 flex flex-col h-screen overflow-hidden relative">
         <header className="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-8 sticky top-0 z-10">
           <div className="flex items-center gap-4">
@@ -123,6 +142,13 @@ const App: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-6">
+            {isSaving && (
+              <div className="flex items-center gap-2 bg-indigo-50 text-indigo-600 px-4 py-2 rounded-full border border-indigo-100 animate-pulse">
+                <div className="w-2 h-2 bg-indigo-600 rounded-full animate-bounce"></div>
+                <span className="text-[10px] font-black uppercase">جاري الحفظ في جوجل شيت...</span>
+              </div>
+            )}
+            
             <div className="relative">
               <button 
                 onClick={() => setIsNotificationOpen(!isNotificationOpen)}
@@ -165,7 +191,7 @@ const App: React.FC = () => {
               {activeView === 'dashboard' && <Dashboard students={students} />}
               {activeView === 'table' && <StudentTable students={students} />}
               {activeView === 'alerts' && <AlertsView notifications={notifications} />}
-              {activeView === 'add' && <AddStudentForm onAdd={handleAddStudent} onCancel={() => setActiveView('table')} studentsCount={students.length} />}
+              {activeView === 'add' && <AddStudentForm onAdd={handleAddStudent} onCancel={() => setActiveView('table')} studentsCount={students.length} isSaving={isSaving} />}
             </div>
           )}
         </div>

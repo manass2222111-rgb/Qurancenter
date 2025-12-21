@@ -4,11 +4,9 @@ import { Student } from '../types';
 const SHEET_ID = '1idfCJE2jQLzZzIyU8C0JN0Na0PxfoKq-mAP6_7Pz-L4';
 const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=0`;
 
-/**
- * ملاحظة هامة: لإتمام عملية "الكتابة" في جوجل شيت، يجب عليك نشر "Google Apps Script" 
- * كـ Web App ووضع الرابط الخاص به هنا. الرابط الحالي للقراءة فقط.
- */
-const SCRIPT_URL = 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE'; 
+// الحصول على رابط السكريبت من ذاكرة المتصفح
+export const getScriptUrl = () => localStorage.getItem('google_script_url') || '';
+export const setScriptUrl = (url: string) => localStorage.setItem('google_script_url', url);
 
 const parseCSV = (text: string): string[][] => {
   const rows: string[][] = [];
@@ -53,7 +51,7 @@ const parseCSV = (text: string): string[][] => {
 
 export const fetchSheetData = async (): Promise<Student[]> => {
   try {
-    const response = await fetch(CSV_URL);
+    const response = await fetch(`${CSV_URL}&t=${Date.now()}`); // إضافة timestamp لمنع الكاش
     if (!response.ok) throw new Error(`فشل الاتصال: ${response.statusText}`);
     const csvText = await response.text();
     const allRows = parseCSV(csvText);
@@ -91,26 +89,33 @@ export const fetchSheetData = async (): Promise<Student[]> => {
   }
 };
 
-/**
- * وظيفة إرسال البيانات إلى جوجل شيت
- */
 export const addStudentToSheet = async (student: Student): Promise<boolean> => {
+  const SCRIPT_URL = getScriptUrl();
+  
+  if (!SCRIPT_URL) {
+    console.error("لم يتم ضبط رابط Google Apps Script.");
+    return false;
+  }
+
   try {
-    // إذا لم يتم توفير رابط السكريبت، سنقوم بمحاكاة النجاح محلياً فقط مع تنبيه المستخدم
-    if (SCRIPT_URL === 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') {
-      console.warn("تنبيه: لم يتم ربط App Script للكتابة. سيتم الحفظ في ذاكرة المتصفح فقط.");
-      return true; 
-    }
+    // إرسال البيانات كـ FormData لسهولة التعامل مع Apps Script
+    const formData = new URLSearchParams();
+    Object.entries(student).forEach(([key, value]) => {
+      formData.append(key, value);
+    });
 
     const response = await fetch(SCRIPT_URL, {
       method: 'POST',
-      mode: 'no-cors', // لضمان العمل مع Google Apps Script
+      mode: 'no-cors',
       cache: 'no-cache',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(student)
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: formData.toString()
     });
 
-    return true; // في وضع no-cors لا يمكننا قراءة الاستجابة بدقة، نفترض النجاح
+    // في وضع no-cors لا نستطيع قراءة الاستجابة، سنفترض النجاح إذا لم يحدث Error
+    return true;
   } catch (error) {
     console.error('Error saving to sheet:', error);
     return false;

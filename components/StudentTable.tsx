@@ -16,7 +16,6 @@ const StudentTable: React.FC<StudentTableProps> = ({ students, onUpdate, onDelet
   const [isEditMode, setIsEditMode] = useState(false);
   const [editFormData, setEditFormData] = useState<Student | null>(null);
 
-  // التحكم في التمرير عند فتح واجهة الطالب
   useEffect(() => {
     if (selectedStudent) {
       document.body.style.overflow = 'hidden';
@@ -50,7 +49,7 @@ const StudentTable: React.FC<StudentTableProps> = ({ students, onUpdate, onDelet
   };
 
   const handleDelete = () => {
-    if (selectedStudent && onDelete && window.confirm(`⚠️ هل أنت متأكد تماماً من حذف سجل الدارس: ${selectedStudent.name}؟ لا يمكن التراجع عن هذا الإجراء.`)) {
+    if (selectedStudent && onDelete && window.confirm(`⚠️ حذف سجل: ${selectedStudent.name}؟`)) {
       onDelete(selectedStudent);
       setSelectedStudent(null);
     }
@@ -62,82 +61,90 @@ const StudentTable: React.FC<StudentTableProps> = ({ students, onUpdate, onDelet
     }
   };
 
+  const fieldGroups = [
+    {
+      title: 'البيانات الشخصية',
+      color: 'indigo',
+      fields: [
+        { label: 'الاسم', key: 'name', icon: '👤' },
+        { label: 'الهوية', key: 'nationalId', icon: '🆔' },
+        { label: 'الجنسية', key: 'nationality', icon: '🌍' },
+        { label: 'الهاتف', key: 'phone', icon: '📱' },
+        { label: 'الميلاد', key: 'dob', type: 'date', icon: '📅' },
+        { label: 'العمر', key: 'age', icon: '🎂' },
+      ]
+    },
+    {
+      title: 'المسار التعليمي',
+      color: 'violet',
+      fields: [
+        { label: 'المحفظ', key: 'teacher', icon: '🎓' },
+        { label: 'الحلقة', key: 'circle', icon: '🕌' },
+        { label: 'المستوى', key: 'level', icon: '📊' },
+        { label: 'الجزء', key: 'part', icon: '📖' },
+        { label: 'التسجيل', key: 'regDate', type: 'date', icon: '✍️' },
+        { label: 'الإنجاز', key: 'completion', icon: '✅' },
+      ]
+    },
+    {
+      title: 'إضافي وإداري',
+      color: 'slate',
+      fields: [
+        { label: 'انتهاء الهوية', key: 'expiryId', type: 'date', icon: '⌛' },
+        { label: 'الفترة', key: 'period', icon: '⏰' },
+        { label: 'الرسوم', key: 'fees', icon: '💰' },
+        { label: 'الفئة', key: 'category', icon: '👥' },
+        { label: 'السكن', key: 'address', icon: '📍' },
+        { label: 'الوظيفة', key: 'job', icon: '💼' },
+      ]
+    }
+  ];
+
   return (
-    <div className="space-y-6 relative">
-      
-      {/* قسم البحث العلوي */}
-      <div className="flex flex-col md:flex-row gap-4 items-center mb-8">
-        <div className="relative flex-1 group w-full">
-          <input 
-            type="text" 
-            placeholder="البحث الذكي في كافة البيانات (الاسم، المعلم، الهاتف...)"
-            className="w-full pr-14 pl-6 py-5 bg-white border-none rounded-[2rem] shadow-xl shadow-indigo-100/40 outline-none ring-2 ring-transparent focus:ring-indigo-500/30 transition-all font-bold text-slate-700 placeholder:text-slate-300"
-            value={globalSearch}
-            onChange={(e) => setGlobalSearch(e.target.value)}
-          />
-          <svg className="absolute right-6 top-1/2 -translate-y-1/2 w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-        </div>
+    <div className="space-y-6">
+      {/* البحث */}
+      <div className="relative group max-w-2xl">
+        <input 
+          type="text" 
+          placeholder="بحث سريع في الأسماء والأرقام..."
+          className="w-full pr-12 pl-6 py-4 bg-white border-none rounded-2xl shadow-lg shadow-indigo-100/50 outline-none focus:ring-2 focus:ring-indigo-500/20 font-bold text-slate-700"
+          value={globalSearch}
+          onChange={(e) => setGlobalSearch(e.target.value)}
+        />
+        <svg className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
       </div>
 
-      {/* الجدول الرئيسي */}
-      <div className="bg-white rounded-[2.5rem] shadow-2xl shadow-indigo-100/20 border border-slate-100 overflow-hidden">
+      {/* الجدول */}
+      <div className="bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-right border-collapse min-w-[1100px]">
-            <thead className="bg-[#0F172A] text-white">
+          <table className="w-full text-right min-w-[1000px]">
+            <thead className="bg-[#1E293B] text-white">
               <tr>
-                <th className="px-4 py-6 text-[10px] font-black uppercase text-center w-12 opacity-50">#</th>
-                <th className="px-4 py-6 text-xs font-black">اسم الدارس</th>
-                <th className="px-4 py-6 text-xs font-black">المعلم</th>
-                <th className="px-4 py-6 text-xs font-black">الحلقة</th>
-                <th className="px-4 py-6 text-xs font-black">المستوى</th>
-                <th className="px-4 py-6 text-xs font-black text-center">الهوية</th>
-                <th className="px-4 py-6 text-xs font-black text-center">الهاتف</th>
-                <th className="px-4 py-6 text-xs font-black text-center">الرسوم</th>
-                <th className="px-4 py-6 w-16"></th>
-              </tr>
-              {/* فلاتر الأعمدة المخصصة */}
-              <tr className="bg-indigo-50/50">
-                <th className="p-3"></th>
-                <th className="p-3"><input placeholder="فلترة بالاسم.." className="w-full p-2.5 bg-white border border-indigo-100 rounded-xl text-[10px] font-bold outline-none focus:border-indigo-400" value={columnSearch.name || ''} onChange={e => setColumnSearch(p => ({...p, name: e.target.value}))} /></th>
-                <th className="p-3"><input placeholder="فلترة بالمعلم.." className="w-full p-2.5 bg-white border border-indigo-100 rounded-xl text-[10px] font-bold outline-none focus:border-indigo-400" value={columnSearch.teacher || ''} onChange={e => setColumnSearch(p => ({...p, teacher: e.target.value}))} /></th>
-                <th className="p-3"><input placeholder="فلترة بالحلقة.." className="w-full p-2.5 bg-white border border-indigo-100 rounded-xl text-[10px] font-bold outline-none focus:border-indigo-400" value={columnSearch.circle || ''} onChange={e => setColumnSearch(p => ({...p, circle: e.target.value}))} /></th>
-                <th className="p-3"><input placeholder="المستوى.." className="w-full p-2.5 bg-white border border-indigo-100 rounded-xl text-[10px] font-bold outline-none focus:border-indigo-400" value={columnSearch.level || ''} onChange={e => setColumnSearch(p => ({...p, level: e.target.value}))} /></th>
-                <th className="p-3"><input placeholder="الهوية.." className="w-full p-2.5 bg-white border border-indigo-100 rounded-xl text-[10px] font-bold outline-none focus:border-indigo-400 text-center" value={columnSearch.nationalId || ''} onChange={e => setColumnSearch(p => ({...p, nationalId: e.target.value}))} /></th>
-                <th className="p-3"><input placeholder="الهاتف.." className="w-full p-2.5 bg-white border border-indigo-100 rounded-xl text-[10px] font-bold outline-none focus:border-indigo-400 text-center" value={columnSearch.phone || ''} onChange={e => setColumnSearch(p => ({...p, phone: e.target.value}))} /></th>
-                <th className="p-3 text-center">
-                  <select className="p-2.5 bg-white border border-indigo-100 rounded-xl text-[10px] font-bold outline-none" value={columnSearch.fees || ''} onChange={e => setColumnSearch(p => ({...p, fees: e.target.value}))}>
-                    <option value="">الكل</option>
-                    <option value="نعم">خالص</option>
-                    <option value="لا">مستحق</option>
-                  </select>
-                </th>
-                <th className="p-3"></th>
+                <th className="px-4 py-4 text-[10px] font-black opacity-50 text-center w-12">#</th>
+                <th className="px-4 py-4 text-xs font-black">الاسم</th>
+                <th className="px-4 py-4 text-xs font-black">المعلم</th>
+                <th className="px-4 py-4 text-xs font-black">الحلقة</th>
+                <th className="px-4 py-4 text-xs font-black text-center">الهوية</th>
+                <th className="px-4 py-4 text-xs font-black text-center">الرسوم</th>
+                <th className="px-4 py-4 w-12"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
               {filteredData.map((s, idx) => (
-                <tr 
-                  key={s.id || idx} 
-                  className="hover:bg-indigo-50/40 transition-all cursor-pointer group"
-                  onClick={() => handleOpenDetails(s)}
-                >
-                  <td className="px-4 py-5 text-[10px] font-black text-slate-300 text-center">{idx + 1}</td>
-                  <td className="px-4 py-5 font-black text-slate-700 text-sm">{s.name}</td>
-                  <td className="px-4 py-5 text-sm font-bold text-slate-500">{s.teacher}</td>
-                  <td className="px-4 py-5 text-sm font-bold text-slate-500">{s.circle}</td>
-                  <td className="px-4 py-5">
-                    <span className="px-3 py-1 bg-indigo-50 text-indigo-600 text-[10px] font-black rounded-lg border border-indigo-100/50">{s.level}</span>
-                  </td>
-                  <td className="px-4 py-5 text-center font-mono text-xs text-slate-400">{s.nationalId}</td>
-                  <td className="px-4 py-5 text-center font-bold text-xs text-slate-400">{s.phone}</td>
-                  <td className="px-4 py-5 text-center">
-                    <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-black ${s.fees === 'نعم' ? 'bg-indigo-100 text-indigo-700' : 'bg-rose-100 text-rose-700'}`}>
+                <tr key={s.id || idx} onClick={() => handleOpenDetails(s)} className="hover:bg-indigo-50/50 cursor-pointer transition-colors group">
+                  <td className="px-4 py-4 text-[10px] font-bold text-slate-300 text-center">{idx + 1}</td>
+                  <td className="px-4 py-4 font-bold text-slate-700 text-sm">{s.name}</td>
+                  <td className="px-4 py-4 text-xs font-medium text-slate-500">{s.teacher}</td>
+                  <td className="px-4 py-4 text-xs font-medium text-slate-500">{s.circle}</td>
+                  <td className="px-4 py-4 text-center font-mono text-[10px] text-slate-400">{s.nationalId}</td>
+                  <td className="px-4 py-4 text-center">
+                    <span className={`px-2 py-1 rounded-md text-[9px] font-black ${s.fees === 'نعم' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
                       {s.fees === 'نعم' ? 'خالص' : 'مستحق'}
-                    </div>
+                    </span>
                   </td>
-                  <td className="px-4 py-5 text-center">
-                    <div className="w-10 h-10 rounded-2xl bg-slate-50 text-slate-300 flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-all shadow-sm">
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"/></svg>
+                  <td className="px-4 py-4">
+                    <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-300 group-hover:bg-indigo-600 group-hover:text-white transition-all">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
                     </div>
                   </td>
                 </tr>
@@ -147,144 +154,77 @@ const StudentTable: React.FC<StudentTableProps> = ({ students, onUpdate, onDelet
         </div>
       </div>
 
-      {/* --- واجهة العرض الكاملة (Full Screen Editor) --- */}
+      {/* --- بطاقة الطالب (Modal) الاحترافية --- */}
       {selectedStudent && (
-        <div className="fixed inset-0 z-[1000] bg-slate-900 flex items-center justify-center">
-          <div className="w-full h-full bg-slate-50 flex flex-col overflow-hidden animate-fade-up">
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 md:p-6 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white w-full max-w-5xl max-h-[90vh] rounded-[2.5rem] shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-300">
             
-            {/* 1. Header الثابت للتحكم */}
-            <header className="bg-[#0F172A] px-6 py-6 md:px-12 flex justify-between items-center shadow-2xl z-20 shrink-0">
-              <div className="flex items-center gap-6">
-                <button onClick={() => setSelectedStudent(null)} className="w-12 h-12 bg-white/5 hover:bg-white/10 rounded-2xl flex items-center justify-center text-white transition-all">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"/></svg>
-                </button>
+            {/* الهيدر: ثابت */}
+            <div className="bg-[#0F172A] p-6 md:p-8 flex justify-between items-center shrink-0">
+              <div className="flex items-center gap-5">
+                <div className="w-12 h-12 md:w-16 md:h-16 bg-indigo-600 rounded-2xl flex items-center justify-center text-white text-xl md:text-2xl font-black shadow-lg">
+                  {selectedStudent.name.charAt(0)}
+                </div>
                 <div>
-                  <h2 className="text-xl md:text-3xl font-black text-white truncate max-w-sm md:max-w-xl">
-                    {isEditMode ? 'تعديل بيانات الدارس' : selectedStudent.name}
+                  <h2 className="text-lg md:text-2xl font-black text-white truncate max-w-[200px] md:max-w-md">
+                    {isEditMode ? 'تعديل البيانات' : selectedStudent.name}
                   </h2>
-                  <p className="text-indigo-400 text-xs font-bold uppercase tracking-widest mt-1">
-                    المعرف التسلسلي: {selectedStudent.id} • الهوية: {selectedStudent.nationalId}
-                  </p>
+                  <p className="text-indigo-300 text-[10px] font-bold uppercase tracking-widest mt-1">كود الطالب: {selectedStudent.id}</p>
                 </div>
               </div>
-
-              <div className="flex items-center gap-3">
-                {isEditMode ? (
-                  <>
-                    <button onClick={() => setIsEditMode(false)} className="px-6 py-3 bg-white/5 hover:bg-white/10 rounded-2xl text-white font-black text-sm transition-all">إلغاء</button>
-                    <button onClick={handleSave} className="px-8 py-3 bg-violet-600 hover:bg-violet-700 rounded-2xl text-white font-black text-sm shadow-xl transition-all flex items-center gap-2">
-                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"/></svg>
-                       حفظ التعديلات
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <button onClick={handleDelete} className="px-6 py-3 bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white rounded-2xl font-black text-sm transition-all">حذف الملف</button>
-                    <button onClick={() => setIsEditMode(true)} className="px-8 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black text-sm shadow-xl transition-all flex items-center gap-2">
-                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                       تعديل البيانات
-                    </button>
-                  </>
-                )}
-                <button onClick={() => setSelectedStudent(null)} className="w-12 h-12 bg-white/5 hover:bg-rose-600 rounded-2xl flex items-center justify-center text-white text-xl transition-all">✕</button>
+              <div className="flex gap-2">
+                 {isEditMode ? (
+                   <>
+                     <button onClick={() => setIsEditMode(false)} className="px-4 py-2 text-white/70 hover:text-white font-bold text-xs transition-colors">إلغاء</button>
+                     <button onClick={handleSave} className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2 rounded-xl font-black text-xs shadow-lg transition-all">حفظ</button>
+                   </>
+                 ) : (
+                   <>
+                     <button onClick={handleDelete} className="bg-rose-500/10 text-rose-400 hover:bg-rose-500 hover:text-white px-4 py-2 rounded-xl font-black text-xs transition-all">حذف</button>
+                     <button onClick={() => setIsEditMode(true)} className="bg-white text-slate-900 px-6 py-2 rounded-xl font-black text-xs shadow-lg hover:bg-slate-100 transition-all">تعديل</button>
+                   </>
+                 )}
+                 <button onClick={() => setSelectedStudent(null)} className="w-10 h-10 flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 rounded-xl transition-all">✕</button>
               </div>
-            </header>
+            </div>
 
-            {/* 2. جسم المحتوى القابل للتمرير */}
-            <main className="flex-1 overflow-y-auto p-6 md:p-12 custom-scrollbar">
-              <div className="max-w-7xl mx-auto space-y-12">
-                
-                {/* شبكة البيانات الـ 20 */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                  
-                  {/* قسم 1: المعلومات الأساسية */}
-                  <div className="bg-white p-8 rounded-[3rem] border border-slate-100 shadow-sm space-y-6">
-                    <h3 className="text-sm font-black text-indigo-900 flex items-center gap-2 mb-4">
-                      <span className="w-2 h-6 bg-indigo-500 rounded-full"></span> البيانات الشخصية
+            {/* المحتوى: تمرير داخلي فقط عند الحاجة */}
+            <div className="flex-1 overflow-y-auto p-6 md:p-10 bg-slate-50/50 custom-scrollbar">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {fieldGroups.map((group, gIdx) => (
+                  <div key={gIdx} className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm space-y-5 h-fit">
+                    <h3 className={`text-[11px] font-black text-${group.color}-600 flex items-center gap-2 mb-2 uppercase tracking-widest`}>
+                      <span className={`w-1.5 h-4 bg-${group.color}-500 rounded-full`}></span> {group.title}
                     </h3>
-                    {[
-                      { label: 'الاسم الكامل', key: 'name', icon: '👤' },
-                      { label: 'رقم الهاتف', key: 'phone', icon: '📱' },
-                      { label: 'الجنسية', key: 'nationality', icon: '🌍' },
-                      { label: 'تاريخ الميلاد', key: 'dob', type: 'date', icon: '📅' },
-                      { label: 'العمر', key: 'age', icon: '🎂' },
-                      { label: 'السكن / العنوان', key: 'address', icon: '📍' },
-                      { label: 'الوظيفة الحالية', key: 'job', icon: '💼' },
-                    ].map(f => (
-                      <div key={f.key} className="group">
-                        <label className="text-[10px] font-black text-slate-400 block mb-2 uppercase tracking-tighter">{f.icon} {f.label}</label>
-                        <input 
-                          type={f.type || 'text'}
-                          readOnly={!isEditMode}
-                          value={(editFormData as any)?.[f.key] || ''}
-                          onChange={e => handleFieldChange(f.key as keyof Student, e.target.value)}
-                          className={`w-full bg-transparent font-black text-slate-800 outline-none transition-all py-2 ${isEditMode ? 'border-b-2 border-indigo-100 text-indigo-600 focus:border-indigo-500' : 'cursor-default'}`}
-                        />
-                      </div>
-                    ))}
+                    <div className="grid grid-cols-1 gap-4">
+                      {group.fields.map(f => (
+                        <div key={f.key}>
+                          <label className="text-[9px] font-black text-slate-400 block mb-1 pr-1">{f.icon} {f.label}</label>
+                          {isEditMode && f.key !== 'id' ? (
+                            <input 
+                              type={f.type || 'text'}
+                              value={(editFormData as any)?.[f.key] || ''}
+                              onChange={e => handleFieldChange(f.key as keyof Student, e.target.value)}
+                              className="w-full bg-indigo-50/50 border border-indigo-100 rounded-lg px-3 py-2 text-xs font-bold text-indigo-700 outline-none focus:border-indigo-400"
+                            />
+                          ) : (
+                            <div className="text-xs font-black text-slate-700 px-1 py-1 truncate bg-transparent">
+                              {(selectedStudent as any)?.[f.key] || '—'}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
                   </div>
-
-                  {/* قسم 2: المسار التعليمي */}
-                  <div className="bg-white p-8 rounded-[3rem] border border-slate-100 shadow-sm space-y-6">
-                    <h3 className="text-sm font-black text-indigo-900 flex items-center gap-2 mb-4">
-                      <span className="w-2 h-6 bg-violet-500 rounded-full"></span> الأداء والحلقات
-                    </h3>
-                    {[
-                      { label: 'اسم المحفظ', key: 'teacher', icon: '🎓' },
-                      { label: 'اسم الحلقة', key: 'circle', icon: '🕌' },
-                      { label: 'المستوى الحالي', key: 'level', icon: '📊' },
-                      { label: 'الجزء الحالي', key: 'part', type: 'number', icon: '📖' },
-                      { label: 'تاريخ التسجيل', key: 'regDate', type: 'date', icon: '✍️' },
-                      { label: 'المؤهل الدراسي', key: 'qualification', icon: '📜' },
-                    ].map(f => (
-                      <div key={f.key} className="group">
-                        <label className="text-[10px] font-black text-slate-400 block mb-2 uppercase tracking-tighter">{f.icon} {f.label}</label>
-                        <input 
-                          type={f.type || 'text'}
-                          readOnly={!isEditMode}
-                          value={(editFormData as any)?.[f.key] || ''}
-                          onChange={e => handleFieldChange(f.key as keyof Student, e.target.value)}
-                          className={`w-full bg-transparent font-black text-slate-800 outline-none transition-all py-2 ${isEditMode ? 'border-b-2 border-indigo-100 text-indigo-600 focus:border-indigo-500' : 'cursor-default'}`}
-                        />
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* قسم 3: الحالة الإدارية */}
-                  <div className="bg-white p-8 rounded-[3rem] border border-slate-100 shadow-sm space-y-6">
-                    <h3 className="text-sm font-black text-indigo-900 flex items-center gap-2 mb-4">
-                      <span className="w-2 h-6 bg-rose-500 rounded-full"></span> المعلومات الرسمية
-                    </h3>
-                    {[
-                      { label: 'رقم الهوية', key: 'nationalId', icon: '🆔' },
-                      { label: 'انتهاء الهوية', key: 'expiryId', type: 'date', icon: '⌛' },
-                      { label: 'الفئة المستهدفة', key: 'category', icon: '👥' },
-                      { label: 'الفترة الدراسية', key: 'period', icon: '⏰' },
-                      { label: 'حالة الرسوم', key: 'fees', icon: '💰' },
-                      { label: 'اكتمال الملف', key: 'completion', icon: '✅' },
-                      { label: 'المعرف الرقمي', key: 'id', icon: '🔢' },
-                    ].map(f => (
-                      <div key={f.key} className="group">
-                        <label className="text-[10px] font-black text-slate-400 block mb-2 uppercase tracking-tighter">{f.icon} {f.label}</label>
-                        <input 
-                          type={f.type || 'text'}
-                          readOnly={!isEditMode || f.key === 'id'}
-                          value={(editFormData as any)?.[f.key] || ''}
-                          onChange={e => handleFieldChange(f.key as keyof Student, e.target.value)}
-                          className={`w-full bg-transparent font-black text-slate-800 outline-none transition-all py-2 ${isEditMode && f.key !== 'id' ? 'border-b-2 border-indigo-100 text-indigo-600 focus:border-indigo-500' : 'cursor-default opacity-80'}`}
-                        />
-                      </div>
-                    ))}
-                  </div>
-
-                </div>
+                ))}
               </div>
-            </main>
+            </div>
 
-            {/* تذييل اختياري */}
-            <footer className="bg-white/80 backdrop-blur-md px-12 py-4 border-t border-slate-100 text-center">
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">منصة نور القرآن • نظام إدارة البيانات السحابي</p>
-            </footer>
+            {/* الفوتر: ثابت وبسيط */}
+            <div className="p-4 bg-white border-t border-slate-100 text-center shrink-0">
+               <span className="text-[9px] font-bold text-slate-300 uppercase tracking-widest">نظام نور القرآن لإدارة الحلقات • 2024</span>
+            </div>
+
           </div>
         </div>
       )}

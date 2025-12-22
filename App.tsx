@@ -20,21 +20,24 @@ const Icons = {
 const App: React.FC = () => {
   const [students, setStudents] = useState<Student[]>([]);
   const [activeView, setActiveView] = useState<ViewType>('dashboard');
-  const [isLoading, setIsLoading] = useState(true);
+  const [isInitialLoading, setIsInitialLoading] = useState(true); // تحميل أول مرة فقط
+  const [isBackgroundSyncing, setIsBackgroundSyncing] = useState(false); // مزامنة خلفية
   const [isSaving, setIsSaving] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [scriptUrl, setScriptUrlState] = useState(getScriptUrl());
 
-  const loadData = async () => {
+  const loadData = async (silent = false) => {
     try {
-      setIsLoading(true);
+      if (!silent) setIsInitialLoading(students.length === 0);
+      setIsBackgroundSyncing(true);
       const data = await fetchSheetData();
       setStudents(data);
     } catch (err: any) {
       console.error(err);
     } finally {
-      setIsLoading(false);
+      setIsInitialLoading(false);
+      setIsBackgroundSyncing(false);
     }
   };
 
@@ -49,9 +52,14 @@ const App: React.FC = () => {
       setIsSaving(true);
       const success = await performSheetAction(student, action);
       if (success) {
-        setTimeout(loadData, 2000);
+        // تحديث البيانات في الخلفية بدون تصفير الشاشة
+        loadData(true);
         if (action === 'delete') alert("تم حذف الدارس بنجاح.");
         if (action === 'update') alert("تم تحديث البيانات بنجاح.");
+        if (action === 'add') {
+          alert("تم تسجيل الدارس بنجاح.");
+          setActiveView('table');
+        }
       }
     } catch (err) {
       alert("حدث خطأ في الاتصال بالسحابة.");
@@ -115,7 +123,7 @@ const App: React.FC = () => {
           </nav>
         </div>
 
-        <div className="mt-auto p-8">
+        <div className="mt-auto p-8 border-t border-slate-800/50">
           <button onClick={() => setShowSettings(true)} className="w-full flex items-center gap-4 px-5 py-4 rounded-2xl text-slate-400 hover:text-white hover:bg-slate-800 transition-all font-bold text-sm">
             <Icons.Settings /> الإعدادات
           </button>
@@ -124,13 +132,21 @@ const App: React.FC = () => {
 
       <main className="flex-1 flex flex-col h-screen overflow-hidden relative">
         <header className="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-8 sticky top-0 z-10">
-          <h2 className="text-slate-900 font-extrabold text-xl">
-            {activeView === 'dashboard' ? 'لوحة المعلومات' : activeView === 'table' ? 'سجل الطلاب' : activeView === 'alerts' ? 'مركز التنبيهات' : 'إضافة طالب'}
-          </h2>
+          <div className="flex items-center gap-4">
+            <h2 className="text-slate-900 font-extrabold text-xl">
+              {activeView === 'dashboard' ? 'لوحة المعلومات' : activeView === 'table' ? 'سجل الطلاب' : activeView === 'alerts' ? 'مركز التنبيهات' : 'إضافة طالب'}
+            </h2>
+            {isBackgroundSyncing && (
+              <div className="flex items-center gap-2 px-3 py-1 bg-indigo-50 text-indigo-600 rounded-full animate-pulse border border-indigo-100">
+                <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full"></div>
+                <span className="text-[9px] font-black uppercase">جاري التزامن...</span>
+              </div>
+            )}
+          </div>
 
           <div className="flex items-center gap-6">
             <div className={`flex items-center gap-2 px-4 py-2 rounded-full border text-[10px] font-black uppercase ${scriptUrl ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-rose-50 text-rose-600 border-rose-100'}`}>
-              <div className={`w-2 h-2 rounded-full ${scriptUrl ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`}></div>
+              <div className={`w-2 h-2 rounded-full ${scriptUrl ? 'bg-emerald-500' : 'bg-rose-500'}`}></div>
               {scriptUrl ? 'متصل' : 'ضبط الإعدادات'}
             </div>
             
@@ -142,9 +158,12 @@ const App: React.FC = () => {
           </div>
         </header>
 
-        <div className="flex-1 overflow-y-auto p-8">
-          {isLoading ? (
-            <div className="flex flex-col items-center justify-center h-full"><div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div><p className="mt-4 text-slate-400 font-bold">جاري المزامنة...</p></div>
+        <div className="flex-1 overflow-y-auto p-8 relative">
+          {isInitialLoading && students.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-full">
+              <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+              <p className="mt-4 text-slate-400 font-bold">جاري المزامنة الأولى...</p>
+            </div>
           ) : (
             <div className="animate-fade-up">
               {activeView === 'dashboard' && <Dashboard students={students} />}

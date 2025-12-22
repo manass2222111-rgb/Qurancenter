@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Student } from '../types';
 
 interface AddStudentFormProps {
@@ -10,7 +10,6 @@ interface AddStudentFormProps {
   isSaving?: boolean;
 }
 
-// القائمة المعتمدة والمرتبة للمستويات كما طلب المستخدم
 const LEVEL_ORDER = ['تمهيدي', 'الأول', 'الثاني', 'الثالث', 'الرابع', 'الخامس', 'السادس'];
 
 const AddStudentForm: React.FC<AddStudentFormProps> = ({ onAdd, onCancel, studentsCount, students, isSaving = false }) => {
@@ -22,10 +21,12 @@ const AddStudentForm: React.FC<AddStudentFormProps> = ({ onAdd, onCancel, studen
     completion: '0%'
   });
 
-  // استخراج القيم الفريدة من الشيت تلقائياً (بدون تأليف بيانات)
+  // استخراج القيم الفريدة بشكل مستقر
   const dropdownOptions = useMemo(() => {
-    const getUnique = (key: keyof Student) => 
-      Array.from(new Set(students.map(s => s[key]).filter(v => v && v.trim() !== ''))).sort();
+    const getUnique = (key: keyof Student) => {
+      const vals = students.map(s => s[key]).filter(v => v && v.trim() !== '');
+      return Array.from(new Set(vals)).sort();
+    };
 
     return {
       teachers: getUnique('teacher'),
@@ -35,13 +36,12 @@ const AddStudentForm: React.FC<AddStudentFormProps> = ({ onAdd, onCancel, studen
     };
   }, [students]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     if (isSaving) return;
     const { name, value } = e.target;
     
     if (value === "__MANUAL__") {
       setManualInputs(prev => ({ ...prev, [name]: true }));
-      setFormData(prev => ({ ...prev, [name]: '' }));
       return;
     }
 
@@ -54,19 +54,22 @@ const AddStudentForm: React.FC<AddStudentFormProps> = ({ onAdd, onCancel, studen
       }
       return updated;
     });
-  };
+  }, [isSaving]);
 
   useEffect(() => {
-    const totalFields = 19;
-    const filledFields = Object.values(formData).filter(v => v && v !== '').length;
-    const percentage = Math.round((filledFields / totalFields) * 100);
+    const fieldsToCount = ['name', 'phone', 'nationality', 'dob', 'address', 'qualification', 'teacher', 'circle', 'level', 'part', 'regDate', 'nationalId', 'category', 'period', 'expiryId', 'fees'];
+    const filledFields = fieldsToCount.filter(key => {
+      const val = (formData as any)[key];
+      return val && val.trim() !== '';
+    }).length;
+    const percentage = Math.round((filledFields / fieldsToCount.length) * 100);
     setFormData(prev => ({ ...prev, completion: `${percentage}%` }));
   }, [formData]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (isSaving) return;
-
+    
     const newStudent: Student = {
       id: (studentsCount + 1).toString(),
       name: formData.name || '',
@@ -92,58 +95,68 @@ const AddStudentForm: React.FC<AddStudentFormProps> = ({ onAdd, onCancel, studen
     onAdd(newStudent);
   };
 
-  const steps = [
-    { title: 'البيانات الشخصية', icon: '👤' },
-    { title: 'المسار التعليمي', icon: '📖' },
-    { title: 'البيانات الإدارية', icon: '📂' }
-  ];
-
-  // مكون حقل الاختيار الديناميكي
   const DynamicSelect = ({ name, label, options, placeholder }: { name: string, label: string, options: string[], placeholder: string }) => (
     <div className="space-y-2">
       <label className="text-[11px] font-black text-slate-400 uppercase pr-2">{label}</label>
       {manualInputs[name] ? (
-        <div className="relative">
+        <div className="relative group">
           <input 
             name={name} 
             type="text" 
             value={(formData as any)[name] || ''} 
             onChange={handleChange}
             placeholder={`اكتب ${label} جديد...`}
-            className="w-full px-6 py-4 bg-indigo-50 border-2 border-indigo-200 rounded-2xl outline-none font-bold text-indigo-700"
+            className="w-full px-6 py-4 bg-indigo-50 border-2 border-indigo-200 rounded-2xl outline-none font-bold text-indigo-700 shadow-inner"
             autoFocus
           />
           <button 
             type="button" 
             onClick={() => setManualInputs(p => ({ ...p, [name]: false }))}
-            className="absolute left-4 top-1/2 -translate-y-1/2 text-[10px] bg-white px-2 py-1 rounded-lg shadow-sm font-bold text-slate-400"
+            className="absolute left-4 top-1/2 -translate-y-1/2 text-[9px] bg-white text-slate-400 px-3 py-1.5 rounded-xl shadow-sm font-black uppercase hover:text-indigo-600 transition-colors border border-slate-100"
           >
             رجوع للقائمة
           </button>
         </div>
       ) : (
-        <select 
-          name={name} 
-          value={(formData as any)[name] || ''} 
-          onChange={handleChange} 
-          className="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500/20 font-bold appearance-none"
-        >
-          <option value="">{placeholder}</option>
-          {options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-          <option value="__MANUAL__" className="text-indigo-600 font-bold">+ إضافة قيمة جديدة غير موجودة</option>
-        </select>
+        <div className="relative">
+          <select 
+            name={name} 
+            value={(formData as any)[name] || ''} 
+            onChange={handleChange} 
+            className="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500/20 font-bold appearance-none cursor-pointer"
+          >
+            <option value="">{placeholder}</option>
+            {options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+            <option value="__MANUAL__" className="text-indigo-600 font-black pt-4 border-t">+ إضافة قيمة غير موجودة</option>
+          </select>
+          <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-300">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 9l-7 7-7-7"/></svg>
+          </div>
+        </div>
       )}
     </div>
   );
 
+  const steps = [
+    { title: 'البيانات الشخصية', icon: '👤' },
+    { title: 'المسار التعليمي', icon: '📖' },
+    { title: 'البيانات الإدارية', icon: '📂' }
+  ];
+
   return (
-    <div className={`max-w-4xl mx-auto bg-white rounded-[3rem] border border-slate-100 shadow-2xl overflow-hidden mb-10 transition-opacity ${isSaving ? 'opacity-70 pointer-events-none' : ''}`}>
-      <div className="bg-[#0F172A] p-10 text-white flex justify-between items-center">
-        <div>
-          <h3 className="text-2xl font-black mb-1">تسجيل دارس جديد</h3>
-          <p className="text-indigo-400 text-[10px] font-bold uppercase tracking-widest">اكتمال الملف: {formData.completion}</p>
+    <div className={`max-w-4xl mx-auto bg-white rounded-[3rem] border border-slate-100 shadow-2xl overflow-hidden mb-10 transition-all duration-500 ${isSaving ? 'opacity-60 grayscale pointer-events-none' : ''}`}>
+      <div className="bg-[#0F172A] p-10 text-white flex justify-between items-center relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-1 bg-slate-800">
+           <div className="h-full bg-indigo-500 transition-all duration-1000" style={{ width: formData.completion }}></div>
         </div>
-        <div className="flex gap-4 items-center">
+        <div className="relative z-10">
+          <h3 className="text-2xl font-black mb-1">تسجيل دارس جديد</h3>
+          <p className="text-indigo-400 text-[10px] font-bold uppercase tracking-widest flex items-center gap-2">
+            اكتمال الملف: {formData.completion}
+            {isSaving && <span className="animate-pulse">| جاري الحفظ سحابياً...</span>}
+          </p>
+        </div>
+        <div className="flex gap-4 items-center relative z-10">
           <div className="text-left ml-4">
             <p className="text-xs font-bold text-slate-500">الخطوة {step} من 3</p>
             <p className="text-sm font-black">{steps[step - 1].title}</p>
@@ -200,7 +213,7 @@ const AddStudentForm: React.FC<AddStudentFormProps> = ({ onAdd, onCancel, studen
             
             <div className="space-y-2">
               <label className="text-[11px] font-black text-slate-400 uppercase pr-2">المستوى الأكاديمي</label>
-              <select name="level" value={formData.level || ''} onChange={handleChange} className="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500/20 font-bold appearance-none">
+              <select name="level" value={formData.level || ''} onChange={handleChange} className="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500/20 font-bold appearance-none cursor-pointer">
                 <option value="">اختر المستوى</option>
                 {LEVEL_ORDER.map(l => <option key={l} value={l}>{l}</option>)}
               </select>
@@ -263,9 +276,9 @@ const AddStudentForm: React.FC<AddStudentFormProps> = ({ onAdd, onCancel, studen
               <button 
                 type="submit" 
                 disabled={isSaving} 
-                className={`px-10 py-4 rounded-2xl font-black text-sm shadow-xl transition-all ${isSaving ? 'bg-slate-400 cursor-not-allowed' : 'bg-emerald-600 text-white hover:bg-emerald-700'}`}
+                className={`px-10 py-4 rounded-2xl font-black text-sm shadow-xl transition-all ${isSaving ? 'bg-slate-400 cursor-not-allowed opacity-50' : 'bg-emerald-600 text-white hover:bg-emerald-700 active:scale-95'}`}
               >
-                {isSaving ? 'جاري الحفظ...' : 'إتمام التسجيل'}
+                {isSaving ? 'جاري الحفظ...' : 'إتمام التسجيل وحفظ البيانات'}
               </button>
             )}
           </div>

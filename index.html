@@ -29,17 +29,24 @@
             box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.3);
         }
         
-        /* حل شامل لإظهار التاريخ كأرقام فقط ومنع الحروف المقلوبة */
+        /* الحل النهائي والقطعي لمشكلة التواريخ المقلوبة */
+        /* نستهدف الحقل نفسه */
         input[type="date"] {
             direction: ltr !important;
             text-align: right !important;
-            font-family: sans-serif !important;
+            unicode-bidi: bidi-override !important;
         }
-        
-        /* تحسين مظهر الحقل ليتوافق مع التصميم العربي مع بقاء المحتوى رقمي */
-        input[type="date"]::-webkit-datetime-edit {
+
+        /* نستهدف الأجزاء الداخلية للمتصفح (Shadow DOM) لمنعها من محاولة التعريب المقلوب */
+        input[type="date"]::-webkit-datetime-edit,
+        input[type="date"]::-webkit-datetime-edit-fields-wrapper,
+        input[type="date"]::-webkit-datetime-edit-text,
+        input[type="date"]::-webkit-datetime-edit-month-field,
+        input[type="date"]::-webkit-datetime-edit-day-field,
+        input[type="date"]::-webkit-datetime-edit-year-field {
             direction: ltr !important;
-            unicode-bidi: plaintext !important;
+            display: inline-block !important;
+            unicode-bidi: normal !important;
         }
 
         @keyframes fadeIn {

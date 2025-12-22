@@ -112,7 +112,17 @@ const AddStudentForm: React.FC<AddStudentFormProps> = ({ onAdd, onCancel, studen
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-[11px] font-black text-slate-400 uppercase pr-2">تاريخ الميلاد</label>
-                <input name="dob" type="date" lang="en-GB" dir="ltr" value={formData.dob || ''} onChange={handleChange} className="w-full px-4 py-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500/20 font-bold text-right" />
+                {/* تم إضافة dir="ltr" و lang="en" بشكل صريح جداً لضمان الأرقام */}
+                <input 
+                  name="dob" 
+                  type="date" 
+                  lang="en" 
+                  dir="ltr" 
+                  value={formData.dob || ''} 
+                  onChange={handleChange} 
+                  className="w-full px-4 py-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500/20 font-bold text-right" 
+                  style={{ direction: 'ltr', textAlign: 'right' }}
+                />
               </div>
               <div className="space-y-2">
                 <label className="text-[11px] font-black text-slate-400 uppercase pr-2">العمر</label>
@@ -161,7 +171,16 @@ const AddStudentForm: React.FC<AddStudentFormProps> = ({ onAdd, onCancel, studen
             </div>
             <div className="space-y-2 md:col-span-2">
               <label className="text-[11px] font-black text-slate-400 uppercase pr-2">تاريخ التسجيل بالمركز</label>
-              <input name="regDate" type="date" lang="en-GB" dir="ltr" value={formData.regDate || ''} onChange={handleChange} className="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500/20 font-bold text-right" />
+              <input 
+                name="regDate" 
+                type="date" 
+                lang="en" 
+                dir="ltr" 
+                value={formData.regDate || ''} 
+                onChange={handleChange} 
+                className="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500/20 font-bold text-right" 
+                style={{ direction: 'ltr', textAlign: 'right' }}
+              />
             </div>
           </div>
         )}
@@ -174,7 +193,16 @@ const AddStudentForm: React.FC<AddStudentFormProps> = ({ onAdd, onCancel, studen
             </div>
             <div className="space-y-2">
               <label className="text-[11px] font-black text-slate-400 uppercase pr-2">تاريخ انتهاء الهوية</label>
-              <input name="expiryId" type="date" lang="en-GB" dir="ltr" value={formData.expiryId || ''} onChange={handleChange} className="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500/20 font-bold text-right" />
+              <input 
+                name="expiryId" 
+                type="date" 
+                lang="en" 
+                dir="ltr" 
+                value={formData.expiryId || ''} 
+                onChange={handleChange} 
+                className="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500/20 font-bold text-right" 
+                style={{ direction: 'ltr', textAlign: 'right' }}
+              />
             </div>
             <div className="space-y-2">
               <label className="text-[11px] font-black text-slate-400 uppercase pr-2">الفئة</label>

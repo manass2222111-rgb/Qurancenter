@@ -29,11 +29,16 @@
             box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.3);
         }
         
-        /* تنسيق حقول التاريخ لتظهر كأرقام فقط 00/00/0000 */
+        /* حل نهائي لمشكلة التواريخ المقلوبة */
         input[type="date"] {
-            direction: ltr !important; /* لضمان ظهور الأرقام بشكل صحيح */
-            text-align: right !important; /* للمحافظة على المحاذاة اليمينية في التصميم */
-            font-family: sans-serif !important; /* لضمان ظهور الأرقام العربية 123 */
+            direction: ltr !important;
+            text-align: right !important;
+            unicode-bidi: plaintext !important;
+        }
+        input[type="date"]::-webkit-datetime-edit {
+            direction: ltr !important;
+            display: flex !important;
+            flex-direction: row !important;
         }
 
         @keyframes fadeIn {

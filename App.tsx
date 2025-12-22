@@ -62,7 +62,7 @@ const App: React.FC = () => {
         alert("لم يتم تنفيذ العملية، يرجى التحقق من الرابط.");
       }
     } catch (err) {
-      alert("حدث خطأ تقني.");
+      alert("حدث خطأ تقني في الاتصال.");
     } finally {
       setIsSaving(false);
     }
@@ -92,13 +92,14 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#F1F5F9] flex overflow-hidden font-['Tajawal'] text-right" dir="rtl">
+      {/* Sidebar */}
       <aside className="hidden lg:flex w-72 bg-[#0F172A] flex-col relative z-20 shadow-2xl">
         <div className="p-8">
           <div className="flex items-center gap-3 mb-10">
             <div className="w-10 h-10 bg-indigo-500 rounded-xl flex items-center justify-center text-white font-bold shadow-lg">ن</div>
             <div>
               <h1 className="text-white font-black text-lg leading-none">نور القرآن</h1>
-              <span className="text-indigo-400 text-[10px] font-bold uppercase mt-1 block">لوحة التحكم</span>
+              <span className="text-indigo-400 text-[10px] font-bold uppercase mt-1 block tracking-widest">لوحة التحكم</span>
             </div>
           </div>
           <nav className="space-y-2">
@@ -125,6 +126,7 @@ const App: React.FC = () => {
         </div>
       </aside>
 
+      {/* Main Content */}
       <main className="flex-1 flex flex-col h-screen overflow-hidden relative">
         <header className="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-8 sticky top-0 z-10">
           <div className="flex items-center gap-4">
@@ -134,7 +136,7 @@ const App: React.FC = () => {
             {isSyncing && (
               <div className="flex items-center gap-2 px-3 py-1 bg-indigo-50 text-indigo-600 rounded-full border border-indigo-100">
                 <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-ping"></div>
-                <span className="text-[9px] font-black uppercase">مزامنة البيانات...</span>
+                <span className="text-[9px] font-black uppercase">مزامنة سحابية...</span>
               </div>
             )}
           </div>
@@ -143,7 +145,7 @@ const App: React.FC = () => {
               <div className={`w-2 h-2 rounded-full ${scriptUrl ? 'bg-emerald-500' : 'bg-rose-500'}`}></div>
               {scriptUrl ? 'سحابي متصل' : 'ضبط الإعدادات'}
             </div>
-            <button onClick={() => setIsNotificationOpen(!isNotificationOpen)} className="relative text-slate-500 hover:bg-slate-100 w-10 h-10 flex items-center justify-center rounded-full">
+            <button onClick={() => setIsNotificationOpen(!isNotificationOpen)} className="relative text-slate-500 hover:bg-slate-100 w-10 h-10 flex items-center justify-center rounded-full transition-all">
               <Icons.Bell />
               {totalNotifications > 0 && <span className="absolute top-2 right-2 w-4 h-4 bg-rose-500 text-white text-[9px] font-black rounded-full border-2 border-white flex items-center justify-center">{totalNotifications}</span>}
             </button>
@@ -155,7 +157,7 @@ const App: React.FC = () => {
           {isInitialLoading && students.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full">
               <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-              <p className="mt-4 text-slate-400 font-bold">جاري المزامنة مع الشيت...</p>
+              <p className="mt-4 text-slate-400 font-bold">جاري المزامنة الأولى مع الشيت...</p>
             </div>
           ) : (
             <div className="max-w-[1600px] mx-auto">
@@ -168,16 +170,17 @@ const App: React.FC = () => {
         </div>
       </main>
 
+      {/* Settings Modal */}
       {showSettings && (
         <div className="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-6">
-          <div className="bg-white rounded-[2.5rem] w-full max-w-lg shadow-2xl overflow-hidden">
+          <div className="bg-white rounded-[2.5rem] w-full max-w-lg shadow-2xl overflow-hidden animate-fade-up">
             <div className="p-8 bg-[#0F172A] text-white text-center">
               <h3 className="text-xl font-black mb-1">الربط السحابي</h3>
               <p className="text-slate-400 text-xs">اربط التطبيق بالشيت للتعديل والحذف المباشر</p>
             </div>
             <div className="p-8 space-y-6">
               <input type="text" value={scriptUrl} onChange={(e) => setScriptUrlState(e.target.value)} className="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none text-xs font-mono" placeholder="https://script.google.com/..." />
-              <button onClick={handleSaveSettings} className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-black text-sm shadow-xl">حفظ وإعادة مزامنة</button>
+              <button onClick={handleSaveSettings} className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-black text-sm shadow-xl hover:bg-indigo-700 transition-all">حفظ وإعادة مزامنة</button>
               <button onClick={() => setShowSettings(false)} className="w-full text-slate-400 font-bold text-xs">إلغاء</button>
             </div>
           </div>

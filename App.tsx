@@ -49,7 +49,7 @@ const App: React.FC = () => {
       setIsSaving(true);
       const success = await performSheetAction(student, action);
       if (success) {
-        setTimeout(loadData, 2000); // تحديث القائمة بعد ثانيتين لضمان استقرار الشيت
+        setTimeout(loadData, 2000);
         if (action === 'delete') alert("تم حذف الدارس بنجاح.");
         if (action === 'update') alert("تم تحديث البيانات بنجاح.");
       }
@@ -84,7 +84,6 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#F1F5F9] flex overflow-hidden font-['Tajawal']">
-      {/* Sidebar */}
       <aside className="hidden lg:flex w-72 bg-[#0F172A] flex-col relative z-20">
         <div className="p-8">
           <div className="flex items-center gap-3 mb-10">
@@ -130,12 +129,6 @@ const App: React.FC = () => {
           </h2>
 
           <div className="flex items-center gap-6">
-            {isSaving && (
-              <div className="flex items-center gap-2 bg-indigo-50 text-indigo-600 px-4 py-2 rounded-full border border-indigo-100 animate-pulse">
-                <span className="text-[10px] font-black uppercase tracking-tighter">جاري المزامنة مع جوجل...</span>
-              </div>
-            )}
-            
             <div className={`flex items-center gap-2 px-4 py-2 rounded-full border text-[10px] font-black uppercase ${scriptUrl ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-rose-50 text-rose-600 border-rose-100'}`}>
               <div className={`w-2 h-2 rounded-full ${scriptUrl ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`}></div>
               {scriptUrl ? 'متصل' : 'ضبط الإعدادات'}
@@ -149,7 +142,7 @@ const App: React.FC = () => {
           </div>
         </header>
 
-        <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto p-8">
           {isLoading ? (
             <div className="flex flex-col items-center justify-center h-full"><div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div><p className="mt-4 text-slate-400 font-bold">جاري المزامنة...</p></div>
           ) : (
@@ -163,18 +156,25 @@ const App: React.FC = () => {
                 />
               )}
               {activeView === 'alerts' && <AlertsView notifications={notifications} />}
-              {activeView === 'add' && <AddStudentForm onAdd={(s) => handleAction(s, 'add')} onCancel={() => setActiveView('table')} studentsCount={students.length} isSaving={isSaving} />}
+              {activeView === 'add' && (
+                <AddStudentForm 
+                  onAdd={(s) => handleAction(s, 'add')} 
+                  onCancel={() => setActiveView('table')} 
+                  studentsCount={students.length} 
+                  students={students}
+                  isSaving={isSaving} 
+                />
+              )}
             </div>
           )}
         </div>
       </main>
 
-      {/* Settings Modal */}
       {showSettings && (
         <div className="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-6">
           <div className="bg-white rounded-[2.5rem] w-full max-w-lg shadow-2xl overflow-hidden animate-fade-up">
             <div className="p-8 bg-[#0F172A] text-white text-center">
-              <h3 className="text-xl font-black mb-1">الربط السحابي الذكي</h3>
+              <h3 className="text-xl font-black mb-1">الربط السحابي</h3>
               <p className="text-slate-400 text-xs">اربط التطبيق بالشيت للتعديل والحذف المباشر</p>
             </div>
             <div className="p-8 space-y-6">
@@ -183,9 +183,9 @@ const App: React.FC = () => {
                 value={scriptUrl} 
                 onChange={(e) => setScriptUrlState(e.target.value)}
                 className="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none focus:border-indigo-500 transition-all text-xs font-mono"
-                placeholder="رابط Apps Script (URL)"
+                placeholder="رابط Apps Script"
               />
-              <button onClick={handleSaveSettings} className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-black text-sm shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition-all">حفظ وتفعيل المزامنة</button>
+              <button onClick={handleSaveSettings} className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-black text-sm shadow-xl hover:bg-indigo-700 transition-all">تفعيل المزامنة</button>
               <button onClick={() => setShowSettings(false)} className="w-full text-slate-400 font-bold text-xs">إغلاق</button>
             </div>
           </div>

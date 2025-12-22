@@ -52,14 +52,14 @@ const App: React.FC = () => {
       const success = await performSheetAction(student, action);
       if (success) {
         await loadData();
-        if (action === 'delete') alert("تم حذف السجل بنجاح.");
-        if (action === 'update') alert("تم تحديث السجل بنجاح.");
+        if (action === 'delete') alert("تم حذف السجل.");
+        if (action === 'update') alert("تم تحديث البيانات.");
         if (action === 'add') {
-          alert("تم تسجيل الدارس الجديد بنجاح.");
+          alert("تم تسجيل الدارس بنجاح.");
           setActiveView('table');
         }
       } else {
-        alert("فشل تنفيذ العملية. تأكد من إعدادات الربط.");
+        alert("فشل في تنفيذ العملية.");
       }
     } catch (err) {
       alert("خطأ في الاتصال بالخادم.");
@@ -91,38 +91,38 @@ const App: React.FC = () => {
   const totalNotifications = notifications.expiredIds.length + notifications.expiringSoonIds.length + notifications.unpaidFees.length;
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex overflow-hidden font-['Tajawal'] text-right" dir="rtl">
-      {/* Sidebar - Sapphire Blue Theme */}
-      <aside className="hidden lg:flex w-72 bg-[#0F172A] flex-col relative z-20 shadow-2xl border-l border-white/5">
-        <div className="p-8">
-          <div className="flex items-center gap-3 mb-10 group">
-            <div className="w-11 h-11 bg-indigo-600 rounded-2xl flex items-center justify-center text-white font-black text-xl shadow-lg shadow-indigo-500/30 transition-transform group-hover:rotate-12">ن</div>
+    <div className="min-h-screen bg-[#FDFDFD] flex overflow-hidden font-['Tajawal'] text-right" dir="rtl">
+      {/* Sidebar - Awqaf Style (White with Gold accents) */}
+      <aside className="hidden lg:flex w-72 bg-white flex-col relative z-20 shadow-[1px_0_10px_rgba(0,0,0,0.03)] border-l border-[#EBEBEB]">
+        <div className="p-10">
+          <div className="flex flex-col items-center gap-4 mb-14 text-center">
+            <div className="w-16 h-16 bg-[#84754E] rounded-full flex items-center justify-center text-white font-black text-2xl shadow-md">ن</div>
             <div>
-              <h1 className="text-white font-black text-lg leading-tight">نور القرآن</h1>
-              <span className="text-indigo-400 text-[10px] font-bold uppercase tracking-widest mt-1 block">المنصة الإدارية</span>
+              <h1 className="text-[#84754E] font-black text-xl leading-tight">نور القرآن</h1>
+              <span className="text-[#A1A1A1] text-[10px] font-bold uppercase tracking-widest mt-1 block">المركز الرقمي</span>
             </div>
           </div>
-          <nav className="space-y-2">
+          <nav className="space-y-4">
             {[
               { id: 'dashboard', label: 'الرئيسية', icon: Icons.Home },
-              { id: 'table', label: 'الطلاب', icon: Icons.Users },
+              { id: 'table', label: 'الدارسين', icon: Icons.Users },
               { id: 'alerts', label: 'التنبيهات', icon: Icons.Alert, count: totalNotifications },
               { id: 'add', label: 'تسجيل جديد', icon: Icons.Add },
             ].map((item) => (
               <button key={item.id} onClick={() => setActiveView(item.id as ViewType)}
-                className={`w-full flex items-center justify-between px-5 py-4 rounded-2xl transition-all duration-300 font-bold text-sm ${
+                className={`w-full flex items-center justify-between px-6 py-4 rounded-xl transition-all duration-300 font-bold text-sm ${
                   activeView === item.id 
                   ? 'sidebar-active' 
-                  : 'text-slate-400 hover:text-white hover:bg-white/5'
+                  : 'text-[#666] hover:text-[#84754E] hover:bg-[#F4F1EA]'
                 }`}>
                 <div className="flex items-center gap-4"><item.icon />{item.label}</div>
-                {item.count ? <span className="px-2.5 py-0.5 rounded-full text-[10px] bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">{item.count}</span> : null}
+                {item.count ? <span className="px-2 py-0.5 rounded-lg text-[9px] bg-[#84754E]/10 text-[#84754E]">{item.count}</span> : null}
               </button>
             ))}
           </nav>
         </div>
-        <div className="mt-auto p-8 border-t border-white/5">
-          <button onClick={() => setShowSettings(true)} className="w-full flex items-center gap-4 px-5 py-4 rounded-2xl text-slate-500 hover:text-white hover:bg-white/5 transition-all font-bold text-sm">
+        <div className="mt-auto p-8 border-t border-[#F5F5F5]">
+          <button onClick={() => setShowSettings(true)} className="w-full flex items-center gap-4 px-6 py-3 rounded-xl text-[#999] hover:text-[#84754E] hover:bg-[#F9F9F9] transition-all font-bold text-sm">
             <Icons.Settings /> الإعدادات
           </button>
         </div>
@@ -130,39 +130,39 @@ const App: React.FC = () => {
 
       {/* Main Content Area */}
       <main className="flex-1 flex flex-col h-screen overflow-hidden relative">
-        <header className="h-20 glass-header flex items-center justify-between px-10 sticky top-0 z-10">
-          <div className="flex items-center gap-6">
-            <h2 className="text-slate-900 font-black text-xl tracking-tight">
-              {activeView === 'dashboard' ? 'نظرة عامة' : activeView === 'table' ? 'سجل الطلاب' : activeView === 'alerts' ? 'مركز التنبيهات' : 'إضافة طالب'}
+        <header className="h-20 glass-header flex items-center justify-between px-12 sticky top-0 z-10">
+          <div className="flex items-center gap-8">
+            <h2 className="text-[#444] font-black text-xl">
+              {activeView === 'dashboard' ? 'لوحة المتابعة' : activeView === 'table' ? 'سجل الطلاب' : activeView === 'alerts' ? 'مركز التنبيهات' : 'نموذج التسجيل'}
             </h2>
             {isSyncing && (
-              <div className="flex items-center gap-3 px-4 py-1.5 bg-indigo-50 text-indigo-600 rounded-full border border-indigo-100 shadow-sm animate-pulse">
-                <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full"></div>
-                <span className="text-[10px] font-black uppercase tracking-widest">مزامنة سحابية...</span>
+              <div className="flex items-center gap-2 px-3 py-1 bg-[#F4F1EA] text-[#84754E] rounded-full">
+                <div className="w-1.5 h-1.5 bg-[#84754E] rounded-full animate-ping"></div>
+                <span className="text-[9px] font-bold uppercase">تزامن...</span>
               </div>
             )}
           </div>
           <div className="flex items-center gap-6">
-             <div className={`flex items-center gap-3 px-5 py-2 rounded-full border text-[11px] font-black uppercase shadow-sm transition-all ${scriptUrl ? 'bg-indigo-50 text-indigo-700 border-indigo-100' : 'bg-rose-50 text-rose-700 border-rose-100'}`}>
-              <div className={`w-2 h-2 rounded-full ${scriptUrl ? 'bg-indigo-500' : 'bg-rose-500'}`}></div>
-              {scriptUrl ? 'سحابي متصل' : 'ضبط الاتصال'}
+             <div className={`flex items-center gap-2 px-4 py-1.5 rounded-full border text-[10px] font-black uppercase tracking-wide ${scriptUrl ? 'bg-[#FDFBF7] text-[#84754E] border-[#F1E9DB]' : 'bg-rose-50 text-rose-700 border-rose-100'}`}>
+              <div className={`w-1.5 h-1.5 rounded-full ${scriptUrl ? 'bg-[#84754E]' : 'bg-rose-500'}`}></div>
+              {scriptUrl ? 'الحالة: متصل' : 'الحالة: مفصول'}
             </div>
-            <button onClick={() => setIsNotificationOpen(!isNotificationOpen)} className="relative text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 w-11 h-11 flex items-center justify-center rounded-2xl transition-all">
+            <button onClick={() => setIsNotificationOpen(!isNotificationOpen)} className="relative text-[#999] hover:text-[#84754E] hover:bg-[#F9F9F9] w-10 h-10 flex items-center justify-center rounded-xl transition-all">
               <Icons.Bell />
-              {totalNotifications > 0 && <span className="absolute top-2 right-2 w-4 h-4 bg-indigo-600 text-white text-[9px] font-black rounded-full border-2 border-white flex items-center justify-center shadow-lg">{totalNotifications}</span>}
+              {totalNotifications > 0 && <span className="absolute top-2 right-2 w-4 h-4 bg-[#84754E] text-white text-[9px] font-black rounded-full border-2 border-white flex items-center justify-center shadow-sm">{totalNotifications}</span>}
             </button>
             {isNotificationOpen && <NotificationPanel notifications={notifications} onClose={() => setIsNotificationOpen(false)} onViewAll={() => { setActiveView('alerts'); setIsNotificationOpen(false); }} />}
           </div>
         </header>
 
-        <div className="flex-1 overflow-y-auto p-10 relative">
+        <div className="flex-1 overflow-y-auto p-12 relative">
           {isInitialLoading && students.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full">
-              <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-              <p className="mt-6 text-slate-400 font-bold animate-pulse text-sm">جاري تحميل البيانات...</p>
+              <div className="w-10 h-10 border-2 border-[#84754E] border-t-transparent rounded-full animate-spin"></div>
+              <p className="mt-4 text-[#AAA] font-bold text-sm">جاري التحميل...</p>
             </div>
           ) : (
-            <div className="max-w-[1500px] mx-auto animate-content">
+            <div className="max-w-[1400px] mx-auto animate-fade">
               {activeView === 'dashboard' && <Dashboard students={students} />}
               {activeView === 'table' && <StudentTable students={students} onUpdate={(s) => handleAction(s, 'update')} onDelete={(s) => handleAction(s, 'delete')} />}
               {activeView === 'alerts' && <AlertsView notifications={notifications} />}
@@ -172,21 +172,21 @@ const App: React.FC = () => {
         </div>
       </main>
 
-      {/* Settings Dialog */}
+      {/* Settings Modal - Awqaf Theme */}
       {showSettings && (
-        <div className="fixed inset-0 z-[100] bg-slate-900/40 backdrop-blur-md flex items-center justify-center p-6">
-          <div className="bg-white rounded-[2.5rem] w-full max-w-lg shadow-2xl overflow-hidden">
-            <div className="p-8 bg-[#0F172A] text-white text-center relative overflow-hidden">
-              <h3 className="text-2xl font-black mb-1 relative z-10">إعدادات الربط</h3>
-              <p className="text-slate-400 text-xs relative z-10 tracking-widest uppercase">Apps Script API Service</p>
+        <div className="fixed inset-0 z-[100] bg-black/5backdrop-blur-sm flex items-center justify-center p-6">
+          <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden border border-[#EBEBEB]">
+            <div className="p-10 bg-[#84754E] text-white text-center">
+              <h3 className="text-2xl font-black mb-1">الربط البرمجي</h3>
+              <p className="text-white/60 text-[10px] font-bold tracking-widest">GOOGLE APPS SCRIPT SETTINGS</p>
             </div>
-            <div className="p-8 space-y-8">
-              <div className="space-y-2">
-                <label className="text-[11px] font-black text-slate-400 uppercase pr-2 tracking-widest">رابط الخدمة (Script URL)</label>
-                <input type="text" value={scriptUrl} onChange={(e) => setScriptUrlState(e.target.value)} className="w-full px-6 py-5 bg-slate-50 border-2 border-slate-100 rounded-3xl outline-none focus:border-indigo-500 transition-all text-xs font-mono" placeholder="https://script.google.com/..." />
+            <div className="p-10 space-y-8">
+              <div className="space-y-3">
+                <label className="text-[11px] font-black text-[#84754E] uppercase pr-2">رابط خدمة جوجل (URL)</label>
+                <input type="text" value={scriptUrl} onChange={(e) => setScriptUrlState(e.target.value)} className="w-full px-5 py-4 bg-[#F9F9F9] border border-[#EDEDED] rounded-xl outline-none focus:border-[#84754E] transition-all text-xs font-mono" placeholder="https://script.google.com/..." />
               </div>
-              <button onClick={handleSaveSettings} className="w-full py-5 bg-indigo-600 text-white rounded-3xl font-black text-sm shadow-xl hover:bg-indigo-700 active:scale-95 transition-all">حفظ البيانات وتفعيل المزامنة</button>
-              <button onClick={() => setShowSettings(false)} className="w-full text-slate-400 font-bold text-xs hover:text-slate-600">إغلاق</button>
+              <button onClick={handleSaveSettings} className="w-full py-4 bg-[#84754E] text-white rounded-xl font-black text-sm shadow-md hover:bg-[#6D603F] active:scale-95 transition-all">حفظ وتفعيل</button>
+              <button onClick={() => setShowSettings(false)} className="w-full text-[#AAA] font-bold text-xs hover:text-[#666]">إغلاق</button>
             </div>
           </div>
         </div>

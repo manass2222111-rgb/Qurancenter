@@ -57,10 +57,10 @@ const StudentTable: React.FC<StudentTableProps> = ({ students, onUpdate, onDelet
       {isEditMode ? (
         <input 
           type={type}
+          lang={type === 'date' ? 'en' : undefined}
           value={(editFormData as any)?.[fieldKey] || ''}
           onChange={e => handleFieldChange(fieldKey, e.target.value)}
           className={`w-full bg-slate-50 border-2 border-indigo-50 rounded-xl px-3 py-2 text-sm font-bold text-indigo-700 outline-none focus:border-indigo-500 transition-colors ${type === 'date' ? 'dir-ltr text-right font-sans' : ''}`}
-          style={type === 'date' ? { direction: 'ltr' } : {}}
         />
       ) : (
         <div className="text-sm font-extrabold text-slate-800 break-words">{value || '—'}</div>

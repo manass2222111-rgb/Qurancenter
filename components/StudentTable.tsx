@@ -30,7 +30,6 @@ const StudentTable: React.FC<StudentTableProps> = ({ students, onUpdate, onDelet
     setEditFormData({ ...student });
     setIsEditMode(false);
     setActiveTab('personal');
-    // التمرير لأعلى الصفحة بسلاسة عند فتح البروفايل
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -60,7 +59,8 @@ const StudentTable: React.FC<StudentTableProps> = ({ students, onUpdate, onDelet
           type={type}
           value={(editFormData as any)?.[fieldKey] || ''}
           onChange={e => handleFieldChange(fieldKey, e.target.value)}
-          className="w-full bg-slate-50 border-2 border-indigo-50 rounded-xl px-3 py-2 text-sm font-bold text-indigo-700 outline-none focus:border-indigo-500 transition-colors"
+          className={`w-full bg-slate-50 border-2 border-indigo-50 rounded-xl px-3 py-2 text-sm font-bold text-indigo-700 outline-none focus:border-indigo-500 transition-colors ${type === 'date' ? 'dir-ltr text-right font-sans' : ''}`}
+          style={type === 'date' ? { direction: 'ltr' } : {}}
         />
       ) : (
         <div className="text-sm font-extrabold text-slate-800 break-words">{value || '—'}</div>
@@ -68,11 +68,9 @@ const StudentTable: React.FC<StudentTableProps> = ({ students, onUpdate, onDelet
     </div>
   );
 
-  // إذا تم اختيار طالب، نعرض البروفايل بدلاً من الجدول
   if (selectedStudent) {
     return (
       <div className="animate-in slide-in-from-left-4 duration-500">
-        {/* Profile Header */}
         <div className="bg-white rounded-[3rem] shadow-xl border border-slate-100 overflow-hidden mb-8">
           <div className="bg-slate-900 p-8 md:p-12 text-white relative">
             <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full -mr-20 -mt-20 blur-3xl"></div>
@@ -112,7 +110,6 @@ const StudentTable: React.FC<StudentTableProps> = ({ students, onUpdate, onDelet
             </div>
           </div>
 
-          {/* Tabs Navigation */}
           <div className="flex border-b border-slate-100 bg-slate-50/50 p-2 gap-2">
             {[
               { id: 'personal', label: 'البيانات الشخصية', icon: '👤' },
@@ -131,7 +128,6 @@ const StudentTable: React.FC<StudentTableProps> = ({ students, onUpdate, onDelet
             ))}
           </div>
 
-          {/* Profile Content */}
           <div className="p-8 md:p-12 bg-white">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
               {activeTab === 'personal' && (
@@ -172,7 +168,6 @@ const StudentTable: React.FC<StudentTableProps> = ({ students, onUpdate, onDelet
     );
   }
 
-  // إذا لم يتم اختيار طالب، نعرض الجدول
   return (
     <div className="space-y-6">
       <div className="relative group max-w-xl">

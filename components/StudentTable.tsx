@@ -32,19 +32,7 @@ const StudentTable: React.FC<StudentTableProps> = ({ students, onUpdate, onDelet
   const [isEditMode, setIsEditMode] = useState(false);
   const [editFormData, setEditFormData] = useState<Student | null>(null);
 
-  const options = useMemo(() => {
-    const getUnique = (key: keyof Student) => 
-      Array.from(new Set(students.map(s => s[key]).filter(v => v && v.trim() !== ''))).sort();
-
-    return {
-      teachers: getUnique('teacher'),
-      circles: getUnique('circle'),
-      categories: getUnique('category'),
-      periods: getUnique('period'),
-      nationalities: getUnique('nationality'),
-    };
-  }, [students]);
-
+  // منطق الفلترة الأساسي
   const filteredData = useMemo(() => {
     return students.filter(s => {
       const matchesSearch = !globalSearch || smartMatch(`${s.name} ${s.phone} ${s.teacher} ${s.circle} ${s.nationalId}`, globalSearch);
@@ -61,44 +49,57 @@ const StudentTable: React.FC<StudentTableProps> = ({ students, onUpdate, onDelet
     });
   }, [students, globalSearch, filters]);
 
-  // وظيفة تصدير البيانات إلى Excel الحقيقي (.xlsx)
+  // حساب العدادات لكل فلتر (Faceted Search Counters)
+  const getFilterCounts = (key: keyof Student, currentFilterValue: string) => {
+    // نحسب العدد بناءً على جميع الفلاتر الأخرى باستثناء الفلتر الحالي نفسه
+    return (optionValue: string) => {
+      return students.filter(s => {
+        const matchesSearch = !globalSearch || smartMatch(`${s.name} ${s.phone} ${s.teacher} ${s.circle} ${s.nationalId}`, globalSearch);
+        const matchesLevel = (key === 'level') ? true : (!filters.level || s.level === filters.level);
+        const matchesTeacher = (key === 'teacher') ? true : (!filters.teacher || s.teacher === filters.teacher);
+        const matchesCircle = (key === 'circle') ? true : (!filters.circle || s.circle === filters.circle);
+        const matchesCategory = (key === 'category') ? true : (!filters.category || s.category === filters.category);
+        const matchesPeriod = (key === 'period') ? true : (!filters.period || s.period === filters.period);
+        const matchesNationality = (key === 'nationality') ? true : (!filters.nationality || s.nationality === filters.nationality);
+        const matchesFees = (key === 'fees') ? true : (!filters.fees || s.fees === filters.fees);
+
+        return matchesSearch && matchesLevel && matchesTeacher && matchesCircle && 
+               matchesCategory && matchesPeriod && matchesNationality && matchesFees &&
+               s[key] === optionValue;
+      }).length;
+    };
+  };
+
+  const options = useMemo(() => {
+    const getUnique = (key: keyof Student) => 
+      Array.from(new Set(students.map(s => s[key]).filter(v => v && v.trim() !== ''))).sort();
+
+    return {
+      teachers: getUnique('teacher'),
+      circles: getUnique('circle'),
+      categories: getUnique('category'),
+      periods: getUnique('period'),
+      nationalities: getUnique('nationality'),
+    };
+  }, [students]);
+
   const handleExportExcel = () => {
     if (filteredData.length === 0) return;
-
-    // تحويل البيانات لشكل متوافق مع إكسل
     const dataToExport = filteredData.map(s => ({
-      "م": s.id,
-      "اسم الدارس": s.name,
-      "الجنسية": s.nationality,
-      "تاريخ الميلاد": s.dob,
-      "رقم الهاتف": s.phone,
-      "العمر": s.age,
-      "المستوى": s.level,
-      "الحلقة": s.circle,
-      "المحفظ": s.teacher,
-      "الفئة": s.category,
-      "الفترة": s.period,
-      "رقم الهوية": s.nationalId,
-      "انتهاء الهوية": s.expiryId,
-      "حالة السداد": s.fees === 'نعم' ? 'خالص' : 'مطلوب'
+      "م": s.id, "اسم الدارس": s.name, "الجنسية": s.nationality, "تاريخ الميلاد": s.dob, "رقم الهاتف": s.phone,
+      "العمر": s.age, "المستوى": s.level, "الحلقة": s.circle, "المحفظ": s.teacher, "الفئة": s.category,
+      "الفترة": s.period, "رقم الهوية": s.nationalId, "انتهاء الهوية": s.expiryId, "حالة السداد": s.fees === 'نعم' ? 'خالص' : 'مطلوب'
     }));
-
     const worksheet = XLSX.utils.json_to_sheet(dataToExport);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "الدارسين المفلترين");
-
-    // ضبط اتجاه الصفحة ليكون من اليمين لليسار في ملف إكسل
+    XLSX.utils.book_append_sheet(workbook, worksheet, "الدارسين");
     if (!worksheet['!views']) worksheet['!views'] = [];
     worksheet['!views'].push({ RTL: true });
-
-    // تصدير وتحميل الملف
-    XLSX.writeFile(workbook, `سجل_الدارسين_أبو_بكر_الصديق_${new Date().toLocaleDateString('ar-EG')}.xlsx`);
+    XLSX.writeFile(workbook, `سجل_الدارسين_${new Date().toLocaleDateString('ar-EG')}.xlsx`);
   };
 
   const resetFilters = () => {
-    setFilters({
-      level: '', teacher: '', circle: '', category: '', period: '', nationality: '', fees: ''
-    });
+    setFilters({ level: '', teacher: '', circle: '', category: '', period: '', nationality: '', fees: '' });
     setGlobalSearch('');
   };
 
@@ -124,31 +125,17 @@ const StudentTable: React.FC<StudentTableProps> = ({ students, onUpdate, onDelet
       </div>
       {isEditMode ? (
         isSelect ? (
-          <select 
-            value={(editFormData as any)?.[fieldKey] || ''}
-            onChange={e => setEditFormData({ ...editFormData!, [fieldKey]: e.target.value })}
-            className="w-full bg-white rounded-xl px-4 py-3 text-sm font-bold outline-none border border-[#EDEDED] text-[#444]"
-          >
+          <select value={(editFormData as any)?.[fieldKey] || ''} onChange={e => setEditFormData({ ...editFormData!, [fieldKey]: e.target.value })} className="w-full bg-white rounded-xl px-4 py-3 text-sm font-bold outline-none border border-[#EDEDED] text-[#444]">
             <option value="">اختر...</option>
             {fieldOptions.map((opt: string) => <option key={opt} value={opt}>{opt}</option>)}
           </select>
         ) : (
           type === 'date' ? (
             <div className="date-input-wrapper bg-white border border-[#EDEDED]">
-              <input 
-                type="date"
-                lang="en-GB"
-                value={(editFormData as any)?.[fieldKey] || ''}
-                onChange={e => setEditFormData({ ...editFormData!, [fieldKey]: e.target.value })}
-              />
+              <input type="date" lang="en-GB" value={(editFormData as any)?.[fieldKey] || ''} onChange={e => setEditFormData({ ...editFormData!, [fieldKey]: e.target.value })} />
             </div>
           ) : (
-            <input 
-              type={type}
-              value={(editFormData as any)?.[fieldKey] || ''}
-              onChange={e => setEditFormData({ ...editFormData!, [fieldKey]: e.target.value })}
-              className="w-full bg-white rounded-xl px-4 py-3 text-sm font-bold outline-none border border-[#EDEDED] text-[#444]"
-            />
+            <input type={type} value={(editFormData as any)?.[fieldKey] || ''} onChange={e => setEditFormData({ ...editFormData!, [fieldKey]: e.target.value })} className="w-full bg-white rounded-xl px-4 py-3 text-sm font-bold outline-none border border-[#EDEDED] text-[#444]" />
           )
         )
       ) : (
@@ -164,9 +151,7 @@ const StudentTable: React.FC<StudentTableProps> = ({ students, onUpdate, onDelet
            <div className="bg-[#84754E] p-16 text-white flex flex-col md:flex-row items-center gap-10 relative">
               <div className="absolute top-0 left-0 w-64 h-full bg-[url('https://www.transparenttextures.com/patterns/natural-paper.png')] opacity-10"></div>
               <button onClick={() => setSelectedStudent(null)} className="absolute top-10 right-10 text-white/50 hover:text-white transition-colors font-black text-sm">إغلاق ×</button>
-              <div className="w-28 h-28 bg-white/10 backdrop-blur-md rounded-[2rem] flex items-center justify-center text-5xl font-black border border-white/20 shadow-xl">
-                {selectedStudent.name.charAt(0)}
-              </div>
+              <div className="w-28 h-28 bg-white/10 backdrop-blur-md rounded-[2rem] flex items-center justify-center text-5xl font-black border border-white/20 shadow-xl">{selectedStudent.name.charAt(0)}</div>
               <div className="flex-1 text-center md:text-right relative z-10">
                 <h2 className="text-4xl font-black mb-3">{selectedStudent.name}</h2>
                 <div className="flex flex-wrap justify-center md:justify-start gap-6 text-white/70 text-sm font-bold tracking-widest uppercase">
@@ -259,11 +244,20 @@ const StudentTable: React.FC<StudentTableProps> = ({ students, onUpdate, onDelet
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
             تصدير (Excel)
           </button>
-
-          {(globalSearch || Object.values(filters).some(v => v)) && (
-            <button onClick={resetFilters} className="text-rose-500 font-black text-xs px-4 hover:underline">إعادة ضبط</button>
-          )}
         </div>
+
+        {/* عداد ملخص النتائج الذكي */}
+        {(globalSearch || Object.values(filters).some(v => v)) && (
+          <div className="flex items-center justify-between px-6 py-3 bg-[#F4F1EA]/50 rounded-xl border border-[#84754E]/10 animate-fade">
+            <div className="flex items-center gap-3">
+              <span className="w-2 h-2 bg-[#84754E] rounded-full animate-pulse"></span>
+              <p className="text-[11px] font-black text-[#84754E] uppercase tracking-widest">
+                تم العثور على <span className="text-base mx-1">{filteredData.length}</span> طالب يطابق اختياراتك
+              </p>
+            </div>
+            <button onClick={resetFilters} className="text-[#84754E] font-black text-[10px] uppercase hover:underline decoration-2 underline-offset-4">إلغاء التصفية ×</button>
+          </div>
+        )}
 
         {showAdvancedFilters && (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 pt-6 border-t border-[#F5F5F5] animate-fade">
@@ -271,50 +265,68 @@ const StudentTable: React.FC<StudentTableProps> = ({ students, onUpdate, onDelet
               <label className="text-[10px] font-black text-[#84754E] uppercase pr-2">المحفظ</label>
               <select value={filters.teacher} onChange={e => setFilters({...filters, teacher: e.target.value})} className="filter-select w-full px-5 py-3.5 bg-[#F9F9F9] rounded-xl outline-none font-bold text-sm border border-transparent focus:bg-white focus:border-[#84754E]/20">
                 <option value="">الكل</option>
-                {options.teachers.map(t => <option key={t} value={t}>{t}</option>)}
+                {options.teachers.map(t => {
+                  const count = getFilterCounts('teacher', filters.teacher)(t);
+                  return <option key={t} value={t}>{t} ({count})</option>
+                })}
               </select>
             </div>
             <div className="space-y-2">
               <label className="text-[10px] font-black text-[#84754E] uppercase pr-2">الحلقة</label>
               <select value={filters.circle} onChange={e => setFilters({...filters, circle: e.target.value})} className="filter-select w-full px-5 py-3.5 bg-[#F9F9F9] rounded-xl outline-none font-bold text-sm border border-transparent focus:bg-white focus:border-[#84754E]/20">
                 <option value="">الكل</option>
-                {options.circles.map(c => <option key={c} value={c}>{c}</option>)}
+                {options.circles.map(c => {
+                  const count = getFilterCounts('circle', filters.circle)(c);
+                  return <option key={c} value={c}>{c} ({count})</option>
+                })}
               </select>
             </div>
             <div className="space-y-2">
               <label className="text-[10px] font-black text-[#84754E] uppercase pr-2">المستوى</label>
               <select value={filters.level} onChange={e => setFilters({...filters, level: e.target.value})} className="filter-select w-full px-5 py-3.5 bg-[#F9F9F9] rounded-xl outline-none font-bold text-sm border border-transparent focus:bg-white focus:border-[#84754E]/20">
                 <option value="">الكل</option>
-                {LEVEL_ORDER.map(l => <option key={l} value={l}>{l}</option>)}
+                {LEVEL_ORDER.map(l => {
+                  const count = getFilterCounts('level', filters.level)(l);
+                  return <option key={l} value={l}>{l} ({count})</option>
+                })}
               </select>
             </div>
             <div className="space-y-2">
               <label className="text-[10px] font-black text-[#84754E] uppercase pr-2">الفئة</label>
               <select value={filters.category} onChange={e => setFilters({...filters, category: e.target.value})} className="filter-select w-full px-5 py-3.5 bg-[#F9F9F9] rounded-xl outline-none font-bold text-sm border border-transparent focus:bg-white focus:border-[#84754E]/20">
                 <option value="">الكل</option>
-                {options.categories.map(c => <option key={c} value={c}>{c}</option>)}
+                {options.categories.map(c => {
+                  const count = getFilterCounts('category', filters.category)(c);
+                  return <option key={c} value={c}>{c} ({count})</option>
+                })}
               </select>
             </div>
             <div className="space-y-2">
               <label className="text-[10px] font-black text-[#84754E] uppercase pr-2">الجنسية</label>
               <select value={filters.nationality} onChange={e => setFilters({...filters, nationality: e.target.value})} className="filter-select w-full px-5 py-3.5 bg-[#F9F9F9] rounded-xl outline-none font-bold text-sm border border-transparent focus:bg-white focus:border-[#84754E]/20">
                 <option value="">الكل</option>
-                {options.nationalities.map(n => <option key={n} value={n}>{n}</option>)}
+                {options.nationalities.map(n => {
+                  const count = getFilterCounts('nationality', filters.nationality)(n);
+                  return <option key={n} value={n}>{n} ({count})</option>
+                })}
               </select>
             </div>
             <div className="space-y-2">
               <label className="text-[10px] font-black text-[#84754E] uppercase pr-2">الفترة</label>
               <select value={filters.period} onChange={e => setFilters({...filters, period: e.target.value})} className="filter-select w-full px-5 py-3.5 bg-[#F9F9F9] rounded-xl outline-none font-bold text-sm border border-transparent focus:bg-white focus:border-[#84754E]/20">
                 <option value="">الكل</option>
-                {options.periods.map(p => <option key={p} value={p}>{p}</option>)}
+                {options.periods.map(p => {
+                  const count = getFilterCounts('period', filters.period)(p);
+                  return <option key={p} value={p}>{p} ({count})</option>
+                })}
               </select>
             </div>
             <div className="space-y-2">
               <label className="text-[10px] font-black text-[#84754E] uppercase pr-2">حالة السداد</label>
               <select value={filters.fees} onChange={e => setFilters({...filters, fees: e.target.value})} className="filter-select w-full px-5 py-3.5 bg-[#F9F9F9] rounded-xl outline-none font-bold text-sm border border-transparent focus:bg-white focus:border-[#84754E]/20">
                 <option value="">الكل</option>
-                <option value="نعم">تم السداد</option>
-                <option value="لا">لم يسدد</option>
+                <option value="نعم">تم السداد ({getFilterCounts('fees', filters.fees)('نعم')})</option>
+                <option value="لا">لم يسدد ({getFilterCounts('fees', filters.fees)('لا')})</option>
               </select>
             </div>
           </div>

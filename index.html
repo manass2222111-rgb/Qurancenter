@@ -9,7 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
     <style>
         :root {
-            --brand-primary: #84754E; /* الذهبي الزيتوني المعتمد في موقع الأوقاف */
+            --brand-primary: #84754E;
             --brand-light: #F4F1EA;
             --text-main: #4A4A4A;
             --surface-bg: #FFFFFF;
@@ -45,17 +45,21 @@
             background-color: #6D603F;
             transform: translateY(-1px);
         }
-        /* إصلاح مشكلة قلب حروف التاريخ في متصفحات كروم وأندرويد */
+        
+        /* الإصلاح النهائي لمشكلة قلب الحروف في التاريخ */
         input[type="date"] {
-            direction: ltr !important;
-            text-align: right !important;
+            direction: ltr !important; /* إجبار الحقل على نظام اليسار لليمين للأرقام */
+            text-align: right !important; /* محاذاة النص لليمين ليتناسب مع التصميم العربي */
+            min-height: 3.5rem;
         }
-        input[type="date"]::-webkit-datetime-edit {
+
+        /* إخفاء قناع المتصفح المكسور وإظهار التاريخ بوضوح */
+        input[type="date"]::-webkit-datetime-edit-fields-wrapper {
             display: flex;
             flex-direction: row-reverse;
-            justify-content: flex-end;
-            width: 100%;
+            justify-content: flex-start;
         }
+
         @keyframes fadeIn {
             from { opacity: 0; }
             to { opacity: 1; }
@@ -74,8 +78,8 @@
     "react-dom/client": "https://esm.sh/react-dom@19.0.0/client",
     "recharts": "https://esm.sh/recharts@2.15.0?external=react,react-dom",
     "lucide-react": "https://esm.sh/lucide-react@0.454.0?external=react",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
-    "react/": "https://esm.sh/react@^19.2.3/"
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/"
   }
 }
 </script>

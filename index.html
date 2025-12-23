@@ -46,27 +46,26 @@
             transform: translateY(-1px);
         }
         
-        /* الإصلاح الفني النهائي لحقل التاريخ: إجبار التنسيق الرقمي ومنع تعريب القناع */
+        /* الحل الفني النهائي لإزالة "موي/رهش" واستبدالها بالأرقام */
         input[type="date"] {
-            direction: ltr !important; /* لضمان ترتيب الأرقام من اليسار لليمين */
-            text-align: right !important; /* محاذاة الصندوق لليمين ليتناسب مع التصميم */
-            min-height: 3.5rem;
-            font-family: sans-serif !important; /* استخدام خط نظام للأرقام لضمان الوضوح */
-        }
-
-        /* إجبار الأجزاء الداخلية للحقل على البقاء بنظام الصف الطبيعي لمنع قلب الحروف */
-        input[type="date"]::-webkit-datetime-edit {
-            display: flex !important;
-            flex-direction: row !important;
-            justify-content: flex-end !important;
-            width: 100%;
+            direction: ltr !important; /* إجبار الترتيب الرقمي الطبيعي */
+            text-align: left !important; /* لضمان ظهور dd/mm/yyyy بشكل سليم */
+            padding-left: 1rem !important;
+            padding-right: 1rem !important;
+            font-family: sans-serif !important; /* لضمان وضوح الأرقام الإنجليزية */
+            text-transform: uppercase;
         }
 
         /* تنسيق أيقونة التقويم */
         input[type="date"]::-webkit-calendar-picker-indicator {
             cursor: pointer;
-            margin-left: 10px;
-            filter: sepia(100%) saturate(200%) hue-rotate(10deg); /* تلوين الأيقونة بلون التصميم */
+            filter: sepia(100%) saturate(200%) hue-rotate(10deg);
+        }
+
+        /* منع المتصفح من التلاعب بالقناع الداخلي في وضع RTL */
+        input[type="date"]::-webkit-datetime-edit-fields-wrapper {
+            display: flex !important;
+            flex-direction: row !important;
         }
 
         @keyframes fadeIn {

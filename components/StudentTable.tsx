@@ -74,7 +74,7 @@ const StudentTable: React.FC<StudentTableProps> = ({ students, onUpdate, onDelet
         ) : (
           <input 
             type={type}
-            lang={type === 'date' ? 'en-GB' : undefined}
+            lang={type === 'date' ? 'en' : undefined}
             value={(editFormData as any)?.[fieldKey] || ''}
             onChange={e => setEditFormData({ ...editFormData!, [fieldKey]: e.target.value })}
             className="w-full bg-white rounded-xl px-4 py-3 text-sm font-bold outline-none border border-[#EDEDED] text-[#444]"

@@ -46,17 +46,26 @@
             transform: translateY(-1px);
         }
         
-        /* الحل النهائي لمشكلة التاريخ: LTR للمنطق و Right للتصميم */
+        /* الإصلاح الفني الدقيق لحقل التاريخ لمنع المتصفح من قلب الحروف */
         input[type="date"] {
             direction: ltr !important;
             text-align: right !important;
-            unicode-bidi: plaintext !important;
+            -webkit-appearance: none;
+            min-height: 3.5rem;
         }
 
-        /* تنسيق أيقونة التقويم لتظهر بوضوح في الجهة الصحيحة */
+        /* هذا الجزء يمنع المتصفح من قلب ترتيب الحروف العربية (يوم -> موي) */
+        input[type="date"]::-webkit-datetime-edit {
+            display: flex !important;
+            flex-direction: row !important; /* إجبار الترتيب الطبيعي للأرقام */
+            justify-content: flex-end !important; /* محاذاة المحتوى لليمين */
+            width: 100%;
+        }
+
         input[type="date"]::-webkit-calendar-picker-indicator {
-            margin-left: 10px;
             cursor: pointer;
+            margin-left: 10px;
+            order: -1; /* وضع الأيقونة في الجهة المناسبة */
         }
 
         @keyframes fadeIn {

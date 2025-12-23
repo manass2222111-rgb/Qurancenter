@@ -163,7 +163,7 @@ const AddStudentForm: React.FC<AddStudentFormProps> = ({ onAdd, onCancel, studen
                 <input 
                   name="dob" 
                   type="date" 
-                  lang="en" 
+                  lang="en-GB" 
                   value={formData.dob || ''} 
                   onChange={handleChange} 
                   className="w-full px-5 py-5 bg-[#F9F9F9] rounded-2xl outline-none font-bold" 

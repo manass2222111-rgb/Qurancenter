@@ -46,26 +46,27 @@
             transform: translateY(-1px);
         }
         
-        /* الإصلاح الفني الدقيق لحقل التاريخ لمنع المتصفح من قلب الحروف */
+        /* الإصلاح الفني النهائي لحقل التاريخ: إجبار التنسيق الرقمي ومنع تعريب القناع */
         input[type="date"] {
-            direction: ltr !important;
-            text-align: right !important;
-            -webkit-appearance: none;
+            direction: ltr !important; /* لضمان ترتيب الأرقام من اليسار لليمين */
+            text-align: right !important; /* محاذاة الصندوق لليمين ليتناسب مع التصميم */
             min-height: 3.5rem;
+            font-family: sans-serif !important; /* استخدام خط نظام للأرقام لضمان الوضوح */
         }
 
-        /* هذا الجزء يمنع المتصفح من قلب ترتيب الحروف العربية (يوم -> موي) */
+        /* إجبار الأجزاء الداخلية للحقل على البقاء بنظام الصف الطبيعي لمنع قلب الحروف */
         input[type="date"]::-webkit-datetime-edit {
             display: flex !important;
-            flex-direction: row !important; /* إجبار الترتيب الطبيعي للأرقام */
-            justify-content: flex-end !important; /* محاذاة المحتوى لليمين */
+            flex-direction: row !important;
+            justify-content: flex-end !important;
             width: 100%;
         }
 
+        /* تنسيق أيقونة التقويم */
         input[type="date"]::-webkit-calendar-picker-indicator {
             cursor: pointer;
             margin-left: 10px;
-            order: -1; /* وضع الأيقونة في الجهة المناسبة */
+            filter: sepia(100%) saturate(200%) hue-rotate(10deg); /* تلوين الأيقونة بلون التصميم */
         }
 
         @keyframes fadeIn {

@@ -24,7 +24,7 @@ const DynamicSelect = ({ name, label, options, placeholder, value, onChange, isM
             value={value || ''} 
             onChange={onChange}
             onKeyDown={(e) => { if(e.key === 'Enter') e.preventDefault(); }}
-            placeholder={`إدخال ${label}...`}
+            placeholder={`إدخل ${label}...`}
             className="w-full px-6 py-5 bg-[#F9F9F9] border border-[#84754E]/20 rounded-2xl outline-none font-bold text-[#444] shadow-inner focus:border-[#84754E] transition-all"
             autoFocus
           />
@@ -154,17 +154,16 @@ const AddStudentForm: React.FC<AddStudentFormProps> = ({ onAdd, onCancel, studen
               <input name="name" type="text" value={formData.name || ''} onChange={handleChange} className="w-full px-7 py-5 bg-[#F9F9F9] rounded-2xl outline-none font-bold border border-transparent focus:bg-white focus:border-[#84754E]/20 transition-all shadow-sm" placeholder="أدخل الاسم..." />
             </div>
             <div className="space-y-3">
-              <label className="text-[12px] font-black text-[#84754E] uppercase pr-1 tracking-[0.2em]">رقم الهاتف للتواصل</label>
+              <label className="text-[12px] font-black text-[#84754E] uppercase pr-1 tracking-[0.2em]">رقام الهاتف للتواصل</label>
               <input name="phone" type="text" value={formData.phone || ''} onChange={handleChange} className="w-full px-7 py-5 bg-[#F9F9F9] rounded-2xl outline-none font-bold border border-transparent focus:bg-white focus:border-[#84754E]/20 transition-all shadow-sm" placeholder="05xxxxxxxx" />
             </div>
             <div className="grid grid-cols-2 gap-8">
               <div className="space-y-3">
                 <label className="text-[12px] font-black text-[#84754E] uppercase pr-1 tracking-[0.2em]">تاريخ الميلاد</label>
-                {/* ضبط اللغة هنا يمنع المتصفح من قلب حروف القناع */}
                 <input 
                   name="dob" 
                   type="date" 
-                  lang="en"
+                  lang="en-GB"
                   value={formData.dob || ''} 
                   onChange={handleChange} 
                   className="w-full px-5 py-5 bg-[#F9F9F9] rounded-2xl outline-none font-bold" 

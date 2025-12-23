@@ -46,18 +46,17 @@
             transform: translateY(-1px);
         }
         
-        /* الإصلاح النهائي لمشكلة قلب الحروف في التاريخ */
+        /* الحل النهائي لمشكلة التاريخ: LTR للمنطق و Right للتصميم */
         input[type="date"] {
-            direction: ltr !important; /* إجبار الحقل على نظام اليسار لليمين للأرقام */
-            text-align: right !important; /* محاذاة النص لليمين ليتناسب مع التصميم العربي */
-            min-height: 3.5rem;
+            direction: ltr !important;
+            text-align: right !important;
+            unicode-bidi: plaintext !important;
         }
 
-        /* إخفاء قناع المتصفح المكسور وإظهار التاريخ بوضوح */
-        input[type="date"]::-webkit-datetime-edit-fields-wrapper {
-            display: flex;
-            flex-direction: row-reverse;
-            justify-content: flex-start;
+        /* تنسيق أيقونة التقويم لتظهر بوضوح في الجهة الصحيحة */
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            margin-left: 10px;
+            cursor: pointer;
         }
 
         @keyframes fadeIn {
@@ -78,8 +77,8 @@
     "react-dom/client": "https://esm.sh/react-dom@19.0.0/client",
     "recharts": "https://esm.sh/recharts@2.15.0?external=react,react-dom",
     "lucide-react": "https://esm.sh/lucide-react@0.454.0?external=react",
-    "react/": "https://esm.sh/react@^19.2.3/",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.3/"
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "react/": "https://esm.sh/react@^19.2.3/"
   }
 }
 </script>
